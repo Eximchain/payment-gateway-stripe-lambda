@@ -1,0 +1,22 @@
+{
+  "name": "payment-gateway-stripe-lambda",
+  "version": "0.0.1",
+  "description": "AWS Lambda function to run stripe payment gateway",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm i; rm -f ./payment-gateway-stripe-lambda.zip; zip -r ./payment-gateway-stripe-lambda.zip . -x ./.git/**\\*"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Juan Huertas",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "aws-sdk": "^2.424.0",
+    "node-zip": "^1.1.1",
+    "shelljs": "^0.8.3",
+    "uuid": "^3.3.2"
+  }
+}
