@@ -1,14 +1,27 @@
 const validate = require('./validate');
 const { dynamoDB, s3 } = require('./services');
-
+const stripe = require('stripe')('sk_test_5R9anctWzSc1LSLzL4YYzwxQ00yOUsDCXI')
+        
 async function apiCreate(body) {
     return new Promise(function(resolve, reject) {
+        const sig = req.headers['stripe-signature']
         try {
-            validate.create(body);
-        } catch(err) {
-            reject(err);
+            const event = await stripe.webhooks.constructEvent(req.rawBody, sig, 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4')
+            const eventBody =  event.data.object;
+            console.log(`Processing Order : ${event.data.object}`)
+            try {
+                validate.create(eventBody);
+            } catch(err) {
+                reject(err);
+            }
+            //PROCESS ORDER HERE
+            //TODO: API Create
+        } catch (err) {
+            return res.sendStatus(500)
         }
-        //TODO: API Create
+        return res.sendStatus(200)
+       
+        
        
     });
 }
