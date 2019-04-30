@@ -14,6 +14,7 @@
   "author": "Juan Huertas",
   "license": "UNLICENSED",
   "dependencies": {
+    "amazon-cognito-identity-js": "^3.0.11",
     "aws-sdk": "^2.424.0",
     "node-zip": "^1.1.1",
     "shelljs": "^0.8.3",

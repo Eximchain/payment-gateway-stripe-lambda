@@ -1,52 +1,79 @@
-const validate = require('./validate');
-const { dynamoDB, s3 } = require('./services');
-const stripe = require('stripe')('sk_test_5R9anctWzSc1LSLzL4YYzwxQ00yOUsDCXI')
-        
+const { cognito } = require('./services');
+
 async function apiCreate(body) {
     return new Promise(function(resolve, reject) {
-        const sig = req.headers['stripe-signature']
-        try {
-            const event = await stripe.webhooks.constructEvent(req.rawBody, sig, 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4')
-            const eventBody =  event.data.object;
-            console.log(`Processing Order : ${event.data.object}`)
-            try {
-                validate.create(eventBody);
-            } catch(err) {
-                reject(err);
-            }
-            //PROCESS ORDER HERE
-            //TODO: API Create
-        } catch (err) {
-            return res.sendStatus(500)
-        }
-        return res.sendStatus(200)
-       
-        
-       
+
+        let email = body.email;
+        let number = body.items[0].quantity;
+
+            
+        console.log(`Processing Order`)
+        console.log("verified body"+ JSON.stringify(body));
+            
+        //TODO: mark order as fulfilled on cognito success
+        //TODO: validate email
+        //TODO: validate status is paid but not processed
+        cognito.createUser(email, number)
+        .then(function(result) {
+            console.log("Dapperator user success!", result);
+            
+            let responseCode = 200;
+            // TODO: Replace with something useful or remove
+            let responseHeaders = {"x-custom-header" : "my custom header value"};
+
+            let responseBody = {
+                method: "create"
+            };
+            let response = {
+                statusCode: responseCode,
+                headers: responseHeaders,
+                body: JSON.stringify(responseBody)
+            };
+            resolve(response);
+        })
+        .catch(function(err) {
+            console.log("Error", err);
+            reject(err);
+        })
     });
 }
 
 async function apiRead(body) {
     return new Promise(function(resolve, reject) {
-        try {
-            validate.read(body);
-        } catch(err) {
+        
+        let email = body.email;
+        let status = body.status;
+        console.log(`Processing Order`)
+        console.log("verified body"+ JSON.stringify(body));
+            
+        //TODO: validate email
+        cognito.getUser(email)
+        .then(function(result) {
+            console.log(" user check success!", result);
+            
+            let responseCode = 200;
+            // TODO: Replace with something useful or remove
+            let responseHeaders = {"x-custom-header" : "my custom header value"};
+
+            let responseBody = {
+                method: "read"
+            };
+            let response = {
+                statusCode: responseCode,
+                headers: responseHeaders,
+                body: JSON.stringify(responseBody)
+            };
+            resolve(response);
+        })
+        .catch(function(err) {
+            console.log("Error", err);
             reject(err);
-        }
-        //TODO: API Read
+        })
     });
 }
 
-// TODO: Make sure incomplete steps are cleaned up
 async function apiDelete(body) {
-    return new Promise(function(resolve, reject) {
-        try {
-            validate.delete(body);
-        } catch(err) {
-            reject(err);
-        }
-        //TODO: API Delete
-    });
+    //TODO: API Delete
 }
 
 module.exports = {

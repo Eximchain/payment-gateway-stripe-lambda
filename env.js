@@ -1,12 +1,13 @@
-const awsRegion = process.env.AWS_REGION;
-const tableName = process.env.DDB_TABLE;
-const kmsKeyName = process.env.KMS_KEY_NAME;
-const artifactBucket = process.env.ARTIFACT_BUCKET;
-const dappseedBucket = process.env.DAPPSEED_BUCKET;
 
 const AWS = require('aws-sdk');
+const awsRegion = "us-east-1";
+//TODO: Figure out how to get from terraform as environment variable
+const _cognitoUserPoolId = "us-east-1_cdyKMFR7r"
+
+
 AWS.config.update({region: awsRegion});
+const userPoolId = _cognitoUserPoolId;
 
 module.exports = { 
-    AWS, awsRegion, tableName, kmsKeyName, artifactBucket, dappseedBucket
+    AWS, awsRegion, userPoolId
 };
