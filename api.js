@@ -1,79 +1,62 @@
 const { cognito } = require('./services');
 
+function response(body){
+    let responseHeaders = {"x-custom-header" : "my custom header value"};
+    return {
+        statusCode: 200,
+        headers : responseHeaders,
+        body : JSON.stringify(body)
+    }
+}
+
 async function apiCreate(body) {
-    return new Promise(function(resolve, reject) {
+    let email = body.email;
+    let number = body.items[0].quantity;
 
-        let email = body.email;
-        let number = body.items[0].quantity;
+    console.log(`Processing Order`)
+    console.log("verified body"+ JSON.stringify(body));
 
-            
-        console.log(`Processing Order`)
-        console.log("verified body"+ JSON.stringify(body));
-            
+    try {
         //TODO: mark order as fulfilled on cognito success
         //TODO: validate email
         //TODO: validate status is paid but not processed
-        cognito.createUser(email, number)
-        .then(function(result) {
-            console.log("Dapperator user success!", result);
-            
-            let responseCode = 200;
-            // TODO: Replace with something useful or remove
-            let responseHeaders = {"x-custom-header" : "my custom header value"};
+        const result = await cognito.createUser(email, number);
+        console.log("Dapperator user success!", result);
 
-            let responseBody = {
-                method: "create"
-            };
-            let response = {
-                statusCode: responseCode,
-                headers: responseHeaders,
-                body: JSON.stringify(responseBody)
-            };
-            resolve(response);
-        })
-        .catch(function(err) {
-            console.log("Error", err);
-            reject(err);
-        })
-    });
+        let responseBody = {
+            method: "create"
+        };
+        return response(responseBody);
+    } catch (err) {
+        console.log('Err creating Cognito user: ',err);
+        return response(err);
+    }
 }
 
 async function apiRead(body) {
-    return new Promise(function(resolve, reject) {
+    let email = body.email;
+    let status = body.status;
+    console.log(`Processing Order`)
+    console.log("verified body"+ JSON.stringify(body));
         
-        let email = body.email;
-        let status = body.status;
-        console.log(`Processing Order`)
-        console.log("verified body"+ JSON.stringify(body));
-            
-        //TODO: validate email
-        cognito.getUser(email)
-        .then(function(result) {
-            console.log(" user check success!", result);
-            
-            let responseCode = 200;
-            // TODO: Replace with something useful or remove
-            let responseHeaders = {"x-custom-header" : "my custom header value"};
-
-            let responseBody = {
-                method: "read"
-            };
-            let response = {
-                statusCode: responseCode,
-                headers: responseHeaders,
-                body: JSON.stringify(responseBody)
-            };
-            resolve(response);
-        })
-        .catch(function(err) {
-            console.log("Error", err);
-            reject(err);
-        })
-    });
+    //TODO: validate email
+    try {
+        const user = await cognito.getUser(email);
+        return response({
+            method: 'read', user
+        });
+    } catch (err) {
+        console.log('Error on getting Cognito User: ',err);
+        return response(err);
+    }
 }
 
 async function apiDelete(body) {
     //TODO: API Delete
+}
+
+async function apiCreateCustomer(body) {
+
 }
 
 module.exports = {
