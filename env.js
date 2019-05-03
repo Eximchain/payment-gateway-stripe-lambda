@@ -5,9 +5,15 @@ const awsRegion = "us-east-1";
 const _cognitoUserPoolId = "us-east-1_cdyKMFR7r"
 const stripeKey = 'pk_test_zC55DPhjmV6xBvNglsaBN2wS00Y4tPAkZj';
 
+const PLAN_IDS = {
+    ENTHUSIAST : '',
+    PROJECT : '',
+    STARTUP : ''
+}
+
 AWS.config.update({region: awsRegion});
 const userPoolId = _cognitoUserPoolId;
 
 module.exports = { 
-    AWS, awsRegion, userPoolId, stripeKey
+    AWS, awsRegion, userPoolId, stripeKey, PLAN_IDS
 };

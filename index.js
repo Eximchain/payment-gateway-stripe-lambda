@@ -33,11 +33,13 @@ exports.handler = async (event) => {
     let responsePromise = (function(method) {
         switch(method) {
             case 'create':
-                return api.create(stripe_event.data.object);
+                return api.createCognito(stripe_event.data.object);
             case 'read':
                 return api.read(event.body);
             case 'delete':
                 return api.delete(event.body);
+            case 'create-stripe':
+                return api.createStripe(event.body);
             default:
                 throw new Error("Unrecognized method name ".concat(method));
         }

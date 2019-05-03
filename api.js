@@ -1,4 +1,4 @@
-const { cognito } = require('./services');
+const { cognito, stripe } = require('./services');
 
 function response(body){
     let responseHeaders = {"x-custom-header" : "my custom header value"};
@@ -9,7 +9,7 @@ function response(body){
     }
 }
 
-async function apiCreate(body) {
+async function apiCreateCognito(body) {
     let email = body.email;
     let number = body.items[0].quantity;
 
@@ -55,12 +55,30 @@ async function apiDelete(body) {
     //TODO: API Delete
 }
 
-async function apiCreateCustomer(body) {
-
+async function apiCreateStripe(body) {
+    const { email, numDapps, name, coupon } = body;
+    try {
+        const { customer, subscription } = await stripe.createCustomerAndSubscription({
+            name, email, token, numDapps, coupon
+        });
+        return response({
+            method : 'create-stripe',
+            success : true,
+            customerId : customer.id,
+            subscriptionId : subscription.id
+        })
+    } catch (err) {
+        console.log('Error on Stripe Customer/Subscription create: ',err);
+        return response({
+            method : 'create-stripe',
+            success : false, err
+        });
+    } 
 }
 
 module.exports = {
-  create : apiCreate,
+  createCognito : apiCreateCognito,
   read : apiRead,
-  delete : apiDelete
+  delete : apiDelete,
+  createStripe : apiCreateStripe
 }
