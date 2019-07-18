@@ -1,4 +1,4 @@
-const { AWS , userPoolId } = require('../env');
+const { AWS , cognitoUserPoolId } = require('../env');
 var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'});
 
 function promiseAdminGetUser(cognitoUsername) {
@@ -8,21 +8,51 @@ function promiseAdminGetUser(cognitoUsername) {
   };
   return cognito.adminGetUser(params).promise();
 }
+function numDapps(plans, typeOfPlan){
+    let planName = `custom:${typeOfPlan}_limit`
+    return {
+        Name:planName,
+        Value:'1'
+    }
+}
 
-function promiseAdminCreateUser(email, number) {
-    var params = {
-        UserPoolId: userPoolId, /* required: The user pool ID for the user pool where the user will be created.*/
-        Username: email, /* required : The username for the user. Must be unique within the user pool. Must be a UTF-8 string between 1 and 128 characters. After the user is created, the username cannot be changed.*/
-   
-        ForceAliasCreation: false,
-        
-        UserAttributes: [
-            { Name: "email", Value: email},
-            { Name: "dev:custom:num_dapps", Value: `${number}`},
+export async function adminSignUp(params){
+    return new Promise((resolve, reject) => 
+        cognitoidentityserviceprovider.adminCreateUser(params, (err, result) => {
+            if (err) {
+                reject(err)
+                return;
+            }
+            resolve(result);
+        })
+    )
+}
+
+export async function promiseAdminCreateUser(email, plans) {
+    let dataEmail = {
+        Name : 'email',
+        Value : `${email}`
+    };
+    let params = {
+        UserPoolId: cognitoUserPoolId,
+        Username: email,
+        DesiredDeliveryMediums: [
+            "EMAIL"
         ],
-        
-      };
-      return cognitoidentityserviceprovider.adminCreateUser(params).promise()
+        ForceAliasCreation:false,
+        TemporaryPassword: generatePassword(10),
+        UserAttributes:[
+            dataEmail,
+            {
+                Name: 'email_verified',
+                Value: 'true'
+            },
+            numDapps(plans,"standard"),
+            numDapps(plans, "enterprise"),
+            numDapps(plans, "professional"),
+        ]
+    }
+    return adminSignUp(params)
 }
 
 

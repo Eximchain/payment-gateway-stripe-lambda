@@ -1,9 +1,27 @@
 'use strict';
 const api = require('./api');
+const {stripeKey} = require('./env')
 //TODO: make all the stripe keys environment variables
-const stripe = require('stripe')('sk_test_5R9anctWzSc1LSLzL4YYzwxQ00yOUsDCXI')
+const stripe = require('stripe')(stripeKey)
 
 exports.handler = async (event) => {
+
+    // Auto-return success for CORS pre-flight OPTIONS requests
+    if (event.httpMethod.toLowerCase() == 'options'){
+
+        // Note the empty body, no actual response data required
+        return {
+        statusCode : 200,
+        headers : {
+            'Content-Type': 'application/json', 
+            'Access-Control-Allow-Origin': '*' ,
+            'Access-Control-Allow-Headers': 'Authorization,Content-Type',
+        },
+        body : JSON.stringify({})
+        };
+    }
+    
+
     let stripe_event;
 
     if (event.pathParameters == null){
@@ -12,15 +30,18 @@ exports.handler = async (event) => {
 
     let method = event.pathParameters.proxy;
 
-    if (method == 'create'){
+    if (method == 'update'){
+        console.log("BODY: ",event.body)
         if (event.body == null) {
             throw new Error("malformed body");
         }
+        console.log("HEADERS: ", event.headers)
         if (event.headers == null) {
             throw new Error("malformed headers");
         }
         else{
             try {
+                console.log("Signature error shenanigans")
                 console.log("signature:" + event.headers['Stripe-Signature']);
                 stripe_event = await stripe.webhooks.constructEvent(event.body, event.headers['Stripe-Signature'], 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4')
             } catch(err) {
@@ -32,7 +53,7 @@ exports.handler = async (event) => {
     
     let responsePromise = (function(method) {
         switch(method) {
-            case 'create':
+            case 'update':
                 return api.createCognito(stripe_event.data.object);
             case 'read':
                 return api.read(event.body);

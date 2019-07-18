@@ -1,5 +1,5 @@
 const { stripeKey, PLAN_IDS } = require('../env');
-const stripe = require("stripe")(stripeKey);
+export const stripe = require("stripe")(stripeKey);
 
 export async function createCustomerAndSubscription({ name, email, token, numDapps, coupon }){
   const newCustomer = await stripe.customers.create({ name, email, source: token });
