@@ -3,6 +3,7 @@ var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider();
 
 const { stripeKey, cognitoUserPoolId } = require('./env');
 const stripe = require('stripe')(stripeKey)
+import cognito from './services/cognito.js'
 
 function generatePassword(length) {
     var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
@@ -26,10 +27,6 @@ function response(body){
     }
 }
 
-async function apiCreateCognito(body) {
-
-}
-
 async function apiRead(body) {
     let email = body.email;
     let status = body.status;
@@ -50,6 +47,9 @@ async function apiRead(body) {
 
 async function apiDelete(body) {
     //TODO: API Delete
+    return new Promise((resolve, reject) => 
+        cognitoidentityserviceprovider.
+    )
 }
 
 
@@ -115,39 +115,11 @@ async function apiCreateStripe(body) {
         if(!subscription.status==="active"){
             throw Error(`Subscription failed because subscription status is ${subscription.status}`)
         }
-    
-        
-        let dataEmail = {
-            Name : 'email',
-            Value : `${email}`
-        };
-        
-        let params = {
-            UserPoolId: cognitorUserPoolId,
-            Username: email,
-            DesiredDeliveryMediums: [
-                "EMAIL"
-            ],
-            ForceAliasCreation:false,
-            TemporaryPassword: generatePassword(10),
-            UserAttributes:[
-                dataEmail,
-                {
-                    Name: 'email_verified',
-                    Value: 'true'
-                },
-                numDapps(plans,"standard"),
-                numDapps(plans, "enterprise"),
-                numDapps(plans, "professional"),
-            ]
-        }
 
-
+        let result = cognito.createUser(email, plans)
         console.log("creating cognito user")
         console.log("params: ", params)
-        // console.log("attribute list: ", attributeList)
-
-        let result = await adminSignUp(params)
+        
         // let result = await signUp(userPool, email, generatePassword(10), attributeList)
         // await userPool.signUp(email, generatePassword(10) , attributeList, null, function(err, result) {
         // console.log("RESULT: ",result)
@@ -171,10 +143,13 @@ async function apiCreateStripe(body) {
         });
     } 
 }
-
+//TODO: 
+//failedStripe is the webhook from stripe for subscriptions that couldn't be paid for
+//delete is deleting a dapp and updating the cognito user attribute accordingly
+//create Cognito is to simply create a cognito user without stripe.
 module.exports = {
-  createCognito : apiCreateCognito,
   read : apiRead,
   delete : apiDelete,
-  createStripe : apiCreateStripe
+  createStripe : apiCreateStripe,
+  failedStripe : apiPaymentFailed
 }
