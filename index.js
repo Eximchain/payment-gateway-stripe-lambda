@@ -53,12 +53,10 @@ exports.handler = async (event) => {
     
     let responsePromise = (function(method) {
         switch(method) {
-            case 'update':
-                return api.createCognito(stripe_event.data.object);
             case 'read':
                 return api.read(event.body);
-            case 'delete':
-                return api.delete(event.body);
+            case 'update':
+                return api.update(event.body);
             case 'create-stripe':
                 return api.createStripe(event.body);
             default:

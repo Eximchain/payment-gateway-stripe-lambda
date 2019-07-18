@@ -16,6 +16,20 @@ function numDapps(plans, typeOfPlan){
     }
 }
 
+async function adminUpdate(params) {
+    //TODO: API Delete
+    return new Promise((resolve, reject) => 
+        cognitoidentityserviceprovider.adminUpdateUserAttributes(params, (err, result) => {
+            if(err) {
+                reject(err)
+                return
+            }
+            resolve(result)
+        })
+    )
+}
+
+
 export async function adminSignUp(params){
     return new Promise((resolve, reject) => 
         cognitoidentityserviceprovider.adminCreateUser(params, (err, result) => {
@@ -26,6 +40,19 @@ export async function adminSignUp(params){
             resolve(result);
         })
     )
+}
+
+export async function promiseUpdateDapps(email, plans) {
+    let params = {
+        "UserAttributes": [ 
+           numDapps(plans,"standard"),
+           numDapps(plans, "enterprise"),
+           numDapps(plans, "professional")
+        ],
+        "Username": email,
+        "UserPoolId": "string"
+     }
+     return adminUpdateDapps
 }
 
 export async function promiseAdminCreateUser(email, plans) {
@@ -58,5 +85,6 @@ export async function promiseAdminCreateUser(email, plans) {
 
 module.exports = {
     createUser : promiseAdminCreateUser,
+    updateDapps: promiseUpdateDapps,
     getUser : promiseAdminGetUser,
 }

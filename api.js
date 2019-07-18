@@ -45,24 +45,25 @@ async function apiRead(body) {
     }
 }
 
-async function apiDelete(body) {
-    //TODO: API Delete
-    return new Promise((resolve, reject) => 
-        cognitoidentityserviceprovider.
-    )
-}
-
-
-async function adminSignUp(params){
-    return new Promise((resolve, reject) => 
-        cognitoidentityserviceprovider.adminCreateUser(params, (err, result) => {
-            if (err) {
-                reject(err)
-                return;
-            }
-            resolve(result);
+async function apiUpdateDapps(body) {
+    const {email, plans, token} = JSON.parse(body);
+    console.log("Processing order: ",body)
+    try {
+        console.log("Updating stripe subscription")
+        //TODO:stripe subscription update
+        let result = cognito.updateDapps(email, plans)
+        //check result
+        return response({
+            method:'update-dapps',
+            success: true,
         })
-    )
+    }catch(err){
+        console.log("Error on updating update dapps")
+        return response({
+            method : 'update-dapps',
+            success : false, err
+        });
+    }
 }
 
 async function returnPromise(functionCall, params) {
@@ -149,7 +150,7 @@ async function apiCreateStripe(body) {
 //create Cognito is to simply create a cognito user without stripe.
 module.exports = {
   read : apiRead,
-  delete : apiDelete,
+  update : apiUpdateDapps,
   createStripe : apiCreateStripe,
   failedStripe : apiPaymentFailed
 }
