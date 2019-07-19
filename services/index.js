@@ -1,3 +1,5 @@
 module.exports = {
-  cognito: require('./cognito')
+  cognito: require('./cognito'),
+  stripe : require('./stripe'),
+  sns : require('./sns')
 }

@@ -1,9 +1,7 @@
 
 const AWS = require('aws-sdk');
 const awsRegion = "us-east-1";
-//TODO: Figure out how to get from terraform as environment variable
-// const _cognitoUserPoolId = "us-east-1_ovQiwOPWo"
-// const stripeKey = 'sk_test_5R9anctWzSc1LSLzL4YYzwxQ00yOUsDCXI';
+
 const cognitorUserPoolId = process.env.COGNITO_USER_POOL;
 const stripeKey = process.env.STRIPE_API_KEY;
 const PLAN_IDS = {
@@ -13,8 +11,12 @@ const PLAN_IDS = {
 }
 
 AWS.config.update({region: awsRegion});
-const userPoolId = _cognitoUserPoolId;
+
+const failedPaymentWebhookId = 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4';
+
+const targetSnsARN = 'TODO: Use something from Terraform'
 
 module.exports = { 
-    AWS, awsRegion, cognitoUserPoolId, stripeKey, PLAN_IDS
+    AWS, awsRegion, cognitoUserPoolId, stripeKey, PLAN_IDS,
+    failedPaymentWebhookId, targetSnsARN
 };

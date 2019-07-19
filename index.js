@@ -1,64 +1,29 @@
 'use strict';
-const api = require('./api');
-const {stripeKey} = require('./env')
-//TODO: make all the stripe keys environment variables
-const stripe = require('stripe')(stripeKey)
+const api, { response } = require('./api');
+const webhooks = require('./webhooks');
 
 exports.handler = async (event) => {
 
     // Auto-return success for CORS pre-flight OPTIONS requests
     if (event.httpMethod.toLowerCase() == 'options'){
-
         // Note the empty body, no actual response data required
-        return {
-        statusCode : 200,
-        headers : {
-            'Content-Type': 'application/json', 
-            'Access-Control-Allow-Origin': '*' ,
-            'Access-Control-Allow-Headers': 'Authorization,Content-Type',
-        },
-        body : JSON.stringify({})
-        };
+        return response({});
     }
     
-
-    let stripe_event;
-
     if (event.pathParameters == null){
         throw new Error("malformed path proxy");
     }
 
     let method = event.pathParameters.proxy;
-
-    if (method == 'update'){
-        console.log("BODY: ",event.body)
-        if (event.body == null) {
-            throw new Error("malformed body");
-        }
-        console.log("HEADERS: ", event.headers)
-        if (event.headers == null) {
-            throw new Error("malformed headers");
-        }
-        else{
-            try {
-                console.log("Signature error shenanigans")
-                console.log("signature:" + event.headers['Stripe-Signature']);
-                stripe_event = await stripe.webhooks.constructEvent(event.body, event.headers['Stripe-Signature'], 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4')
-            } catch(err) {
-                throw new Error(err)
-            }
-         
-        }
-    }
-    
+    let body = JSON.parse(event.body);
     let responsePromise = (function(method) {
         switch(method) {
             case 'read':
-                return api.read(event.body);
+                return api.read(body);
             case 'update':
-                return api.update(event.body);
-            case 'create-stripe':
-                return api.createStripe(event.body);
+                return api.update(body);
+            case 'cancel':
+                return api.cancel(body);
             default:
                 throw new Error("Unrecognized method name ".concat(method));
         }
@@ -67,3 +32,21 @@ exports.handler = async (event) => {
     let response = await responsePromise;
     return response;
 };
+
+exports.lapsedHandler = async (event) => {
+    // Auto-return success for CORS pre-flight OPTIONS requests
+    if (event.httpMethod.toLowerCase() == 'options'){
+        // Note the empty body, no actual response data required
+        return response({});
+    }
+    return await webhooks.failedPayment(event);
+}
+
+exports.createHandler = async (event) => {
+    // Auto-return success for CORS pre-flight OPTIONS requests
+    if (event.httpMethod.toLowerCase() == 'options'){
+        // Note the empty body, no actual response data required
+        return response({});
+    }
+    return await api.create(event.body);
+}

@@ -1,2 +1,4 @@
 /node_modules
 /.vscode/payment-gateway-stripe-lambda.zip
+/build
+/.vscode

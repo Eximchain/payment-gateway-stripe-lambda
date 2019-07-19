@@ -8,38 +8,13 @@ function promiseAdminGetUser(cognitoUsername) {
   };
   return cognito.adminGetUser(params).promise();
 }
+
 function numDapps(plans, typeOfPlan){
     let planName = `custom:${typeOfPlan}_limit`
     return {
         Name:planName,
         Value:'1'
     }
-}
-
-async function adminUpdate(params) {
-    //TODO: API Delete
-    return new Promise((resolve, reject) => 
-        cognitoidentityserviceprovider.adminUpdateUserAttributes(params, (err, result) => {
-            if(err) {
-                reject(err)
-                return
-            }
-            resolve(result)
-        })
-    )
-}
-
-
-export async function adminSignUp(params){
-    return new Promise((resolve, reject) => 
-        cognitoidentityserviceprovider.adminCreateUser(params, (err, result) => {
-            if (err) {
-                reject(err)
-                return;
-            }
-            resolve(result);
-        })
-    )
 }
 
 export async function promiseUpdateDapps(email, plans) {
@@ -52,7 +27,16 @@ export async function promiseUpdateDapps(email, plans) {
         "Username": email,
         "UserPoolId": "string"
      }
-     return adminUpdateDapps
+     return cognitoidentityserviceprovider.adminUpdateUserAttributes(params).promise();
+}
+
+function generatePassword(length) {
+    var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        retVal = "";
+    for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
 }
 
 export async function promiseAdminCreateUser(email, plans) {
@@ -79,7 +63,7 @@ export async function promiseAdminCreateUser(email, plans) {
             numDapps(plans, "professional"),
         ]
     }
-    return adminSignUp(params)
+    return cognitoidentityserviceprovider.adminCreateUser(params).promise();
 }
 
 
