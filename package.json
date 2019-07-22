@@ -16,6 +16,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@types/node": "^12.6.8",
+    "@types/stripe": "^6.31.4",
     "amazon-cognito-identity-js": "^3.0.12",
     "aws-sdk": "^2.479.0",
     "node-fetch": "^2.6.0",

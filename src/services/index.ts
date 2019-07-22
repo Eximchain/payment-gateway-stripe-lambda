@@ -1,5 +1,7 @@
-module.exports = {
-  cognito: require('./cognito'),
-  stripe : require('./stripe'),
-  sns : require('./sns')
+import cognito from './cognito';
+import stripe from './stripe';
+import sns from './sns';
+
+export default {
+  cognito, sns, stripe
 }

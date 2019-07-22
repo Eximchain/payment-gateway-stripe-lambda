@@ -1,4 +1,5 @@
-const { cognito, stripe, sns } = require('./services');
+import services from './services';
+const { cognito, stripe, sns } = services;
 
 export function response(body:object) {
     let responseHeaders = {
@@ -86,7 +87,7 @@ async function apiCreate(body:string) {
         return response({
             method: 'create-stripe',
             success: true,
-            user : result.data.User,
+            user : result.User,
             stripeId: customer.id,
             subscriptionId: subscription.id
         })

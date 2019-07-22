@@ -68,7 +68,7 @@ export async function promiseAdminCreateUser(email:string, plans:StripePlan[]) {
 }
 
 
-module.exports = {
+export default {
     createUser : promiseAdminCreateUser,
     updateDapps: promiseUpdateDapps,
     getUser : promiseAdminGetUser,

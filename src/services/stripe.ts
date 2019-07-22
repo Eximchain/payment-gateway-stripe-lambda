@@ -1,4 +1,4 @@
-const { stripeKey, PLAN_IDS } = require('../env');
+import { stripeKey, PLAN_IDS } from '../env';
 export const stripe = require("stripe")(stripeKey);
 
 export interface StripePlan {

@@ -3,7 +3,7 @@ import api, { response } from './api';
 import { APIGatewayEvent } from './gateway-event-type';
 import webhooks from './webhooks';
 
-module.exports.managementHandler = async (request:APIGatewayEvent) => {
+exports.managementHandler = async (request:APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase();
     let callerEmail = request.requestContext.authorizer.claims.email;   
     switch (method) {
@@ -25,7 +25,7 @@ module.exports.managementHandler = async (request:APIGatewayEvent) => {
     }
 };
 
-module.exports.webhookHandler = async (request:APIGatewayEvent) => {
+exports.webhookHandler = async (request:APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body 
     console.log('webhooks in Lambda: ',webhooks);
