@@ -1,15 +1,14 @@
-const AWS = require('aws-sdk');
+const { AWS, snsTopicARN } = require('../env');
 const sns = new AWS.SNS();
-const { snsTopicARN } = require('../env');
 
-export const PaymentStatus = {
+export enum PaymentStatus {
   ACTIVE = 'ACTIVE',
   LAPSED = 'LAPSED',
   FAILED = 'FAILED',
   CANCELLED = 'CANCELLED'
 }
 
-async function publishNotification(email, status){
+async function publishNotification(email:string, status:PaymentStatus){
   let params = {
     TopicArn : snsTopicARN,
     Message : JSON.stringify({
@@ -21,12 +20,12 @@ async function publishNotification(email, status){
   return sns.publish(params).promise();
 }
 
-async function publishPaymentFailure(email){
+export async function publishPaymentFailure(email:string){
   return await publishNotification(email, PaymentStatus.LAPSED);
 }
 
-async function publishCancellation(email){
+export async function publishCancellation(email:string){
   return await publishNotification(email, PaymentStatus.CANCELLED);
 }
 
-module.exports = { publishPaymentFailure, publishCancellation }
+export default { publishPaymentFailure, publishCancellation }

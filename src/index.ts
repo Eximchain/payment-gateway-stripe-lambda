@@ -1,15 +1,16 @@
 'use strict';
-const api, { response } = require('./api');
-const webhooks = require('./webhooks');
+import api, { response } from './api';
+import { APIGatewayEvent } from './gateway-event-type';
+import webhooks from './webhooks';
 
-exports.managementHandler = async (request) => {
+module.exports.managementHandler = async (request:APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase();
     let callerEmail = request.requestContext.authorizer.claims.email;   
     switch (method) {
         case 'GET':
             return await api.read(callerEmail);
         case 'PUT':
-            return await api.update(callerEmail, JSON.parse(request.body));
+            return await api.update(callerEmail, JSON.parse(request.body as string));
         case 'DELETE':
             return await api.cancel(callerEmail);
         case 'OPTIONS':
@@ -24,9 +25,10 @@ exports.managementHandler = async (request) => {
     }
 };
 
-exports.webhookHandler = async (request) => {
+module.exports.webhookHandler = async (request:APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body 
+    console.log('webhooks in Lambda: ',webhooks);
     if (request.httpMethod.toLowerCase() == 'options'){
         // Note the empty body, no actual response data required
         return response({});
@@ -34,11 +36,11 @@ exports.webhookHandler = async (request) => {
     return await webhooks.failedPayment(request);
 }
 
-exports.signupHandler = async (request) => {
+exports.signupHandler = async (request:APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
     if (request.httpMethod.toLowerCase() == 'options'){
         // Note the empty body, no actual response data required
         return response({});
     }
-    return await api.create(request.body);
+    return await api.create(request.body as string);
 }

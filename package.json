@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm i; rm -f ./payment-gateway-stripe-lambda.zip; zip -r ./payment-gateway-stripe-lambda.zip . -x ./.git/**\\*"
+    "clean": "rm -rf .build/* ./payment-gateway-stripe-lambda.zip",
+    "build": "npm i; npm run clean; tsc; cd build; zip -r ../payment-gateway-stripe-lambda.zip *; cd .."
   },
   "repository": {
     "type": "git",
@@ -14,6 +15,7 @@
   "author": "Juan Huertas",
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/node": "^12.6.8",
     "amazon-cognito-identity-js": "^3.0.12",
     "aws-sdk": "^2.479.0",
     "node-fetch": "^2.6.0",

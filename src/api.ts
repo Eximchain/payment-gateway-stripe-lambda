@@ -1,6 +1,6 @@
 const { cognito, stripe, sns } = require('./services');
 
-export function response(body) {
+export function response(body:object) {
     let responseHeaders = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -13,7 +13,7 @@ export function response(body) {
     }
 }
 
-async function apiRead(email) {
+async function apiRead(email:string) {
     console.log(`Reading user data for ${email}`);
     try {
         const user = await cognito.getUser(email);
@@ -27,7 +27,7 @@ async function apiRead(email) {
     }
 }
 
-async function apiUpdateDapps(email, body) {
+async function apiUpdateDapps(email:string, body:string) {
     const { plans } = JSON.parse(body);
     console.log("Processing order: ", body)
     // TODO: Verify that the user doesn't have more dapps
@@ -49,7 +49,7 @@ async function apiUpdateDapps(email, body) {
     }
 }
 
-async function apiCancel(email){    
+async function apiCancel(email:string){    
     try {
         console.log(`Cancelling ${email}'s subscription`);
         const cancelledSub = await stripe.cancel(email);
@@ -68,7 +68,7 @@ async function apiCancel(email){
     }
 }
 
-async function apiCreate(body) {
+async function apiCreate(body:string) {
     const { email, plans, name, coupon, token } = JSON.parse(body);
 
     try {
@@ -81,7 +81,6 @@ async function apiCreate(body) {
             throw Error(`Subscription failed because subscription status is ${subscription.status}`)
         }
         
-        console.log("creating cognito user w/ params: ", params)
         let result = await cognito.createUser(email, plans)
 
         return response({
@@ -100,7 +99,7 @@ async function apiCreate(body) {
     }
 }
 
-module.exports = {
+export default {
     read: apiRead,
     update: apiUpdateDapps,
     create: apiCreate,

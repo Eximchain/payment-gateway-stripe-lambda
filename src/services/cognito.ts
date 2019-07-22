@@ -1,15 +1,16 @@
-const { AWS , cognitoUserPoolId } = require('../env');
-var cognitoidentityserviceprovider = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'});
+import { AWS, cognitoUserPoolId } from '../env';
+import { StripePlan } from './stripe';
+const cognito = new AWS.CognitoIdentityServiceProvider({apiVersion: '2016-04-18'});
 
-function promiseAdminGetUser(cognitoUsername) {
+function promiseAdminGetUser(cognitoUsername:string) {
   let params = {
-      UserPoolId: userPoolId,
+      UserPoolId: cognitoUserPoolId,
       Username: cognitoUsername
   };
   return cognito.adminGetUser(params).promise();
 }
 
-function numDapps(plans, typeOfPlan){
+function numDapps(plans:StripePlan[], typeOfPlan:string){
     let planName = `custom:${typeOfPlan}_limit`
     return {
         Name:planName,
@@ -17,7 +18,7 @@ function numDapps(plans, typeOfPlan){
     }
 }
 
-export async function promiseUpdateDapps(email, plans) {
+export async function promiseUpdateDapps(email:string, plans:StripePlan[]) {
     let params = {
         "UserAttributes": [ 
            numDapps(plans,"standard"),
@@ -27,10 +28,10 @@ export async function promiseUpdateDapps(email, plans) {
         "Username": email,
         "UserPoolId": "string"
      }
-     return cognitoidentityserviceprovider.adminUpdateUserAttributes(params).promise();
+     return cognito.adminUpdateUserAttributes(params).promise();
 }
 
-function generatePassword(length) {
+function generatePassword(length:number) {
     var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
         retVal = "";
     for (var i = 0, n = charset.length; i < length; ++i) {
@@ -39,7 +40,7 @@ function generatePassword(length) {
     return retVal;
 }
 
-export async function promiseAdminCreateUser(email, plans) {
+export async function promiseAdminCreateUser(email:string, plans:StripePlan[]) {
     let dataEmail = {
         Name : 'email',
         Value : `${email}`
@@ -63,7 +64,7 @@ export async function promiseAdminCreateUser(email, plans) {
             numDapps(plans, "professional"),
         ]
     }
-    return cognitoidentityserviceprovider.adminCreateUser(params).promise();
+    return cognito.adminCreateUser(params).promise();
 }
 
 

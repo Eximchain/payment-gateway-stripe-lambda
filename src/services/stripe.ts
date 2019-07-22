@@ -1,8 +1,18 @@
 const { stripeKey, PLAN_IDS } = require('../env');
-const stripe = require("stripe")(stripeKey);
+export const stripe = require("stripe")(stripeKey);
 
+export interface StripePlan {
+  [key:string] : number
+}
 
-async function createCustomerAndSubscription({ name, email, token, plans, coupon }) {
+export interface CreateStripeArgs {
+  name: string
+  email: string
+  token: string
+  plans: StripePlan[]
+  coupon?: string
+}
+async function createCustomerAndSubscription({ name, email, token, plans, coupon }:CreateStripeArgs) {
   const newCustomer = await stripe.customers.create({ 
     name, email, 
     description: `Customer for ${email}`,
@@ -24,8 +34,8 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
   }
 }
 
-async function updateStripeSubscription(email, newPlans) {
-  const subscription = getStripeSubscriptionByEmail(email);
+async function updateStripeSubscription(email:string, newPlans:StripePlan[]) {
+  const subscription = await getStripeSubscriptionByEmail(email);
   return await stripe.subscriptions.update(subscription.id, {
     items: newPlans.map((planObj) => {
       const planType = Object.keys(planObj)[0];
@@ -37,7 +47,7 @@ async function updateStripeSubscription(email, newPlans) {
   })
 }
 
-async function getStripeCustomer(email) {
+async function getStripeCustomer(email:string) {
   const matchingList = await stripe.customers.list({ email })
 
   if (matchingList.data.length === 0) {
@@ -49,7 +59,7 @@ async function getStripeCustomer(email) {
   return matchingList.data[0];
 }
 
-async function getStripeSubscription(stripeCustomerId) {
+async function getStripeSubscription(stripeCustomerId:string) {
   const matchingList = await stripe.subscriptions.retrieve({
     customer: stripeCustomerId
   });
@@ -63,25 +73,26 @@ async function getStripeSubscription(stripeCustomerId) {
   return matchingList.data[0];
 }
 
-async function getStripeSubscriptionByEmail(email) {
+async function getStripeSubscriptionByEmail(email:string) {
   const customer = await getStripeCustomer(email);
   return await getStripeSubscription(customer.id);
 }
 
-async function cancelStripeSubscription(email) {
+async function cancelStripeSubscription(email:string) {
   const subscription = await getStripeSubscriptionByEmail(email);
   return await stripe.subscriptions.del(subscription.id)
 }
 
-async function getStripeData(email) {
+async function getStripeData(email:string) {
   const customer = await getStripeCustomer(email);
   const subscription = await getStripeSubscription(customer.id);
   return { customer, subscription };
 }
 
-module.exports = {
+export default {
   create: createCustomerAndSubscription,
   update: updateStripeSubscription,
   cancel: cancelStripeSubscription,
-  read: getStripeData
+  read: getStripeData,
+  stripe
 }

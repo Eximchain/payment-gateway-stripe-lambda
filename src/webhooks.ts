@@ -1,9 +1,10 @@
-const { stripeKey, stripeWebhookSecret } = require('./env');
-const { publishPaymentFailure } = require('./services/sns');
-const stripe = require('stripe')(stripeKey)
+import { stripe } from './services/stripe';
+import { stripeWebhookSecret } from './env';
+import { APIGatewayEvent } from './gateway-event-type';
+import { publishPaymentFailure } from './services/sns';
 import { response } from './api';
 
-async function handleFailedPayment(event) {
+export async function handleFailedPayment(event:APIGatewayEvent) {
   let stripe_event;
   try {
     if (event.body == null) {
@@ -32,6 +33,6 @@ async function handleFailedPayment(event) {
 
 }
 
-module.exports = {
+export default {
   failedPayment: handleFailedPayment
 }
