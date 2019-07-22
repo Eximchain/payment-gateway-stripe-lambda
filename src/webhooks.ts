@@ -1,4 +1,4 @@
-import { stripe } from './services/stripe';
+import { stripe, Invoice } from './services/stripe';
 import { stripeWebhookSecret } from './env';
 import { APIGatewayEvent } from './gateway-event-type';
 import { publishPaymentFailure } from './services/sns';
@@ -15,17 +15,15 @@ export async function handleFailedPayment(event:APIGatewayEvent) {
       throw new Error("Missing Stripe Signature header.");
     } else {
       stripe_event = await stripe.webhooks.constructEvent(event.body, event.headers['Stripe-Signature'], stripeWebhookSecret);
-      console.log('Parsed stripe_event: ',stripe_event);
     }
   
     if (stripe_event.type !== 'invoice.payment_failed'){
       throw new Error(`Received a notification for unknown Stripe event ${stripe_event.type} .`)
     }
 
-    const invoice = stripe_event.data.object;
+    const invoice = stripe_event.data.object as Invoice;
     const { customer_email } = invoice;
     let notificationId = await publishPaymentFailure(customer_email);
-    console.log('Published payment failure');
     return response({
       message : `Dappbot successfully notified of lapsed payment for ${customer_email}.`,
       notificationId

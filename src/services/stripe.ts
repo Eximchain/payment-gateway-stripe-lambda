@@ -1,5 +1,12 @@
 import { stripeKey, PLAN_IDS } from '../env';
-export const stripe = require("stripe")(stripeKey);
+import Stripe from 'stripe';
+export const stripe = new Stripe(stripeKey);
+
+// Extracting types we need here & elsewhere into
+// more convenient names.
+export type Customer = Stripe.customers.ICustomer;
+export type Subscription = Stripe.subscriptions.ISubscription;
+export type Invoice = Stripe.invoices.IInvoice;
 
 export interface StripePlan {
   [key:string] : number
@@ -36,6 +43,9 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
 
 async function updateStripeSubscription(email:string, newPlans:StripePlan[]) {
   const subscription = await getStripeSubscriptionByEmail(email);
+  if (!subscription){
+    throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
+  }
   return await stripe.subscriptions.update(subscription.id, {
     items: newPlans.map((planObj) => {
       const planType = Object.keys(planObj)[0];
@@ -60,7 +70,7 @@ async function getStripeCustomer(email:string) {
 }
 
 async function getStripeSubscription(stripeCustomerId:string) {
-  const matchingList = await stripe.subscriptions.retrieve({
+  const matchingList = await stripe.subscriptions.list({
     customer: stripeCustomerId
   });
 
@@ -75,17 +85,26 @@ async function getStripeSubscription(stripeCustomerId:string) {
 
 async function getStripeSubscriptionByEmail(email:string) {
   const customer = await getStripeCustomer(email);
+  if (!customer){
+    return null;
+  }
   return await getStripeSubscription(customer.id);
 }
 
 async function cancelStripeSubscription(email:string) {
   const subscription = await getStripeSubscriptionByEmail(email);
+  if (!subscription){
+    throw new Error(`Unable to cancel subscription for ${email}, no subscription exists.`)
+  }
   return await stripe.subscriptions.del(subscription.id)
 }
 
 async function getStripeData(email:string) {
-  const customer = await getStripeCustomer(email);
-  const subscription = await getStripeSubscription(customer.id);
+  let customer, subscription;
+  customer = await getStripeCustomer(email);
+  if (customer){
+    subscription = await getStripeSubscription(customer.id);
+  }
   return { customer, subscription };
 }
 
