@@ -28,7 +28,6 @@ exports.managementHandler = async (request:APIGatewayEvent) => {
 exports.webhookHandler = async (request:APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body 
-    console.log('webhooks in Lambda: ',webhooks);
     if (request.httpMethod.toLowerCase() == 'options'){
         // Note the empty body, no actual response data required
         return response({});

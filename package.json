@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "chmod a+x ./lambda-build.sh",
     "clean": "rm -rf .build/* ./payment-gateway-stripe-lambda.zip",
-    "build": "npm i; npm run clean; tsc; cd build; zip -r ../payment-gateway-stripe-lambda.zip *; cd .."
+    "build": "./lambda-build.sh"
   },
   "repository": {
     "type": "git",
