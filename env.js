@@ -1,9 +1,15 @@
 
 const AWS = require('aws-sdk');
-const awsRegion = "us-east-1";
 
-const cognitorUserPoolId = process.env.COGNITO_USER_POOL;
+// Provided automagically by AWS
+const awsRegion = process.env.AWS_REGION;
+
+// Provided by Terraform
+const cognitoUserPoolId = process.env.COGNITO_USER_POOL;
 const stripeKey = process.env.STRIPE_API_KEY;
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+const snsTopicARN = process.env.SNS_TOPIC_ARN;
+
 const PLAN_IDS = {
     ENTHUSIAST : '',
     PROJECT : '',
@@ -12,11 +18,7 @@ const PLAN_IDS = {
 
 AWS.config.update({region: awsRegion});
 
-const failedPaymentWebhookId = 'whsec_Mp28CyzpSKBsdeeetcSFHu4QViwYngY4';
-
-const targetSnsARN = 'TODO: Use something from Terraform'
-
 module.exports = { 
     AWS, awsRegion, cognitoUserPoolId, stripeKey, PLAN_IDS,
-    failedPaymentWebhookId, targetSnsARN
+    stripeWebhookSecret, snsTopicARN
 };

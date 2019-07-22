@@ -1,4 +1,4 @@
-const { stripeKey, targetSnsARN, failedPaymentWebhookId } = require('./env');
+const { stripeKey, stripeWebhookSecret } = require('./env');
 const { publishPaymentFailure } = require('./services/sns');
 const stripe = require('stripe')(stripeKey)
 import { response } from './api';
@@ -12,7 +12,7 @@ async function handleFailedPayment(event) {
     if (!event.headers || !event.headers['Stripe-Signature']) {
       throw new Error("Missing Stripe Signature header.");
     } else {
-      stripe_event = await stripe.webhooks.constructEvent(event.body, event.headers['Stripe-Signature'], failedPaymentWebhookId)
+      stripe_event = await stripe.webhooks.constructEvent(event.body, event.headers['Stripe-Signature'], stripeWebhookSecret);
     }
   
     if (stripe_event.type !== 'invoice.payment_failed'){

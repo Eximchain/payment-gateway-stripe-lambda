@@ -2,51 +2,43 @@
 const api, { response } = require('./api');
 const webhooks = require('./webhooks');
 
-exports.handler = async (event) => {
-
-    // Auto-return success for CORS pre-flight OPTIONS requests
-    if (event.httpMethod.toLowerCase() == 'options'){
-        // Note the empty body, no actual response data required
-        return response({});
+exports.managementHandler = async (request) => {
+    let method = request.httpMethod.toUpperCase();
+    let callerEmail = request.requestContext.authorizer.claims.email;   
+    switch (method) {
+        case 'GET':
+            return await api.read(callerEmail);
+        case 'PUT':
+            return await api.update(callerEmail, JSON.parse(request.body));
+        case 'DELETE':
+            return await api.cancel(callerEmail);
+        case 'OPTIONS':
+            // Auto-return success for CORS pre-flight OPTIONS requests
+            // Note the empty body, no actual response data required
+            return response({});
+        default:
+            return response({
+                success: false,
+                err : new Error(`Unacceptable HTTP method: ${method}.`)
+            }) 
     }
-    
-    if (event.pathParameters == null){
-        throw new Error("malformed path proxy");
-    }
-
-    let method = event.pathParameters.proxy;
-    let body = JSON.parse(event.body);
-    let responsePromise = (function(method) {
-        switch(method) {
-            case 'read':
-                return api.read(body);
-            case 'update':
-                return api.update(body);
-            case 'cancel':
-                return api.cancel(body);
-            default:
-                throw new Error("Unrecognized method name ".concat(method));
-        }
-    })(method);
-
-    let response = await responsePromise;
-    return response;
 };
 
-exports.lapsedHandler = async (event) => {
-    // Auto-return success for CORS pre-flight OPTIONS requests
-    if (event.httpMethod.toLowerCase() == 'options'){
+exports.webhookHandler = async (request) => {
+    // Auto-return success for CORS pre-flight OPTIONS requests,
+    // which have no body 
+    if (request.httpMethod.toLowerCase() == 'options'){
         // Note the empty body, no actual response data required
         return response({});
     }
-    return await webhooks.failedPayment(event);
+    return await webhooks.failedPayment(request);
 }
 
-exports.createHandler = async (event) => {
+exports.signupHandler = async (request) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
-    if (event.httpMethod.toLowerCase() == 'options'){
+    if (request.httpMethod.toLowerCase() == 'options'){
         // Note the empty body, no actual response data required
         return response({});
     }
-    return await api.create(event.body);
+    return await api.create(request.body);
 }

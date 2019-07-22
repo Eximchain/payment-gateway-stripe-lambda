@@ -13,8 +13,7 @@ export function response(body) {
     }
 }
 
-async function apiRead(body) {
-    let email = body.email;
+async function apiRead(email) {
     console.log(`Reading user data for ${email}`);
     try {
         const user = await cognito.getUser(email);
@@ -28,9 +27,11 @@ async function apiRead(body) {
     }
 }
 
-async function apiUpdateDapps(body) {
-    const { email, plans, token } = JSON.parse(body);
+async function apiUpdateDapps(email, body) {
+    const { plans } = JSON.parse(body);
     console.log("Processing order: ", body)
+    // TODO: Verify that the user doesn't have more dapps
+    // than they're trying to update to
     try {
         const updatedSub = await stripe.update(email, plans);
         let result = await cognito.updateDapps(email, plans)
@@ -48,9 +49,7 @@ async function apiUpdateDapps(body) {
     }
 }
 
-async function apiCancel(body){
-    const { email } = JSON.parse(body);
-    
+async function apiCancel(email){    
     try {
         console.log(`Cancelling ${email}'s subscription`);
         const cancelledSub = await stripe.cancel(email);
@@ -100,10 +99,7 @@ async function apiCreate(body) {
         });
     }
 }
-//TODO: 
-//failedStripe is the webhook from stripe for subscriptions that couldn't be paid for
-//delete is deleting a dapp and updating the cognito user attribute accordingly
-//create Cognito is to simply create a cognito user without stripe.
+
 module.exports = {
     read: apiRead,
     update: apiUpdateDapps,

@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const sns = new AWS.SNS();
-const { targetSnsARN } = require('../env');
+const { snsTopicARN } = require('../env');
 
 export const PaymentStatus = {
   ACTIVE = 'ACTIVE',
@@ -11,7 +11,7 @@ export const PaymentStatus = {
 
 async function publishNotification(email, status){
   let params = {
-    TargetARN : targetSnsARN,
+    TopicArn : snsTopicARN,
     Message : JSON.stringify({
       event : "PAYMENT_STATUS",
       status : status,
