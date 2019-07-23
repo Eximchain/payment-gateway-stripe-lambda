@@ -5,24 +5,28 @@ import webhooks from './webhooks';
 
 exports.managementHandler = async (request:APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase();
-    let callerEmail = request.requestContext.authorizer.claims.email;   
-    switch (method) {
-        case 'GET':
-            return await api.read(callerEmail);
-        case 'PUT':
-            return await api.update(callerEmail, JSON.parse(request.body as string));
-        case 'DELETE':
-            return await api.cancel(callerEmail);
-        case 'OPTIONS':
-            // Auto-return success for CORS pre-flight OPTIONS requests
-            // Note the empty body, no actual response data required
-            return response({});
-        default:
-            return response({
-                success: false,
-                err : new Error(`Unacceptable HTTP method: ${method}.`)
-            }) 
-    }
+    let callerEmail = request.requestContext.authorizer.claims.email; 
+    try {
+        switch (method) {
+            case 'GET':
+                return await api.read(callerEmail);
+            case 'PUT':
+                return await api.update(callerEmail, JSON.parse(request.body as string));
+            case 'DELETE':
+                return await api.cancel(callerEmail);
+            case 'OPTIONS':
+                // Auto-return success for CORS pre-flight OPTIONS requests
+                // Note the empty body, no actual response data required
+                return response({});
+            default:
+                return response({
+                    success: false,
+                    err : new Error(`Unrecognized HTTP method: ${method}.`)
+                }) 
+        }
+    }  catch (err) {
+        return response({ success : false, err })
+    } 
 };
 
 exports.webhookHandler = async (request:APIGatewayEvent) => {

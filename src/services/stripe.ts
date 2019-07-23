@@ -8,6 +8,18 @@ export type Customer = Stripe.customers.ICustomer;
 export type Subscription = Stripe.subscriptions.ISubscription;
 export type Invoice = Stripe.invoices.IInvoice;
 
+export type SubscriptionStateType = Stripe.subscriptions.SubscriptionStatus;
+export enum SubscriptionStates {
+  trial = 'trialing',
+  active = 'active',
+  canceled = 'canceled',
+  unpaid = 'unpaid',
+  incomplete = 'incomplete',
+  incompleteExpired = 'incomplete_expired',
+  pastDue = 'past_due'
+}
+export const ValidSubscriptionStates:SubscriptionStateType[] = [SubscriptionStates.trial, SubscriptionStates.active];
+
 export interface StripePlan {
   [key:string] : number
 }
@@ -63,7 +75,7 @@ async function getStripeCustomer(email:string) {
   if (matchingList.data.length === 0) {
     return null;
   } else if (matchingList.data.length > 1) {
-    throw new Error("Two customers with same email!");
+    throw new Error(`Two customers listed for ${email}, must be an error!`);
   }
 
   return matchingList.data[0];
@@ -77,7 +89,7 @@ async function getStripeSubscription(stripeCustomerId:string) {
   if (matchingList.data.length === 0) {
     return null;
   } else if (matchingList.data.length > 1) {
-    throw new Error("Customer has more than one subscription, sign of an error.");
+    throw new Error(`Multiple subscriptions listed for Stripe Customer ${stripeCustomerId}, must be an error!.`);
   }
 
   return matchingList.data[0];

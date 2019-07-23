@@ -21,12 +21,12 @@ function numDapps(plans:StripePlan[], typeOfPlan:string){
 export async function promiseUpdateDapps(email:string, plans:StripePlan[]) {
     let params = {
         "UserAttributes": [ 
-           numDapps(plans,"standard"),
+           numDapps(plans, "standard"),
            numDapps(plans, "enterprise"),
            numDapps(plans, "professional")
         ],
         "Username": email,
-        "UserPoolId": "string"
+        "UserPoolId": cognitoUserPoolId
      }
      return cognito.adminUpdateUserAttributes(params).promise();
 }
@@ -41,10 +41,6 @@ function generatePassword(length:number) {
 }
 
 export async function promiseAdminCreateUser(email:string, plans:StripePlan[]) {
-    let dataEmail = {
-        Name : 'email',
-        Value : `${email}`
-    };
     let params = {
         UserPoolId: cognitoUserPoolId,
         Username: email,
@@ -54,12 +50,15 @@ export async function promiseAdminCreateUser(email:string, plans:StripePlan[]) {
         ForceAliasCreation:false,
         TemporaryPassword: generatePassword(10),
         UserAttributes:[
-            dataEmail,
+            {
+                Name: 'email',
+                Value: email
+            },
             {
                 Name: 'email_verified',
                 Value: 'true'
             },
-            numDapps(plans,"standard"),
+            numDapps(plans, "standard"),
             numDapps(plans, "enterprise"),
             numDapps(plans, "professional"),
         ]
