@@ -66,11 +66,11 @@ async function apiCreate(body:string) {
         throw Error(`Subscription failed because subscription status is ${subscription.status}`)
     }
     
-    let result = await cognito.createUser(email, plans)
+    let newUser = await cognito.createUser(email, plans)
 
     return response({
         success: true,
-        user : result.User,
+        user : newUser,
         stripeId: customer.id,
         subscriptionId: subscription.id
     })
