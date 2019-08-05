@@ -62,7 +62,8 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
 
   const newSub = await stripe.subscriptions.create({
     customer: newCustomer.id,
-    items: buildSubscriptionItems(plans)
+    items: buildSubscriptionItems(plans),
+    trial_period_days: 7
   })
   return {
     customer: newCustomer,
