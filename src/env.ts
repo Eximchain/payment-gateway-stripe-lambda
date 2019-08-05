@@ -11,9 +11,9 @@ export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 export const snsTopicARN = process.env.SNS_TOPIC_ARN as string;
 
 export const PLAN_IDS = {
-    ENTHUSIAST : '',
-    PROJECT : '',
-    STARTUP : ''
+    STANDARD : '',
+    PROFESSIONAL : '',
+    ENTERPRISE : ''
 }
 
 UnconfiguredAWS.config.update({region: awsRegion});
