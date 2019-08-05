@@ -24,28 +24,45 @@ export interface StripePlan {
   [key:string] : number
 }
 
+
+export interface StripePlans {
+  standard : number
+  professional : number
+  enterprise : number
+}
+
 export interface CreateStripeArgs {
   name: string
   email: string
   token: string
-  plans: StripePlan[]
+  plans: StripePlans
   coupon?: string
 }
+
+function buildSubscriptionItems(plans:StripePlans){
+  const items = [];
+  if (plans.standard > 0) {
+    items.push({ plan : 'standard', quantity : plans.standard })
+  }
+  if (plans.professional > 0) {
+    items.push({ plan : 'professional', quantity : plans.professional })
+  }
+  if (plans.enterprise > 0) {
+    items.push({ plan : 'enterprise', quantity : plans.enterprise })
+  }
+  return items;
+}
+
 async function createCustomerAndSubscription({ name, email, token, plans, coupon }:CreateStripeArgs) {
   const newCustomer = await stripe.customers.create({ 
     name, email, 
     description: `Customer for ${email}`,
     source: token 
   });
+
   const newSub = await stripe.subscriptions.create({
     customer: newCustomer.id,
-    items: plans.map((planObj) => {
-      const planType = Object.keys(planObj)[0];
-      return {
-        plan: planType,
-        quantity: planObj[planType]
-      }
-    })
+    items: buildSubscriptionItems(plans)
   })
   return {
     customer: newCustomer,
@@ -53,19 +70,13 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
   }
 }
 
-async function updateStripeSubscription(email:string, newPlans:StripePlan[]) {
+async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   const subscription = await getStripeSubscriptionByEmail(email);
   if (!subscription){
     throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
   }
   return await stripe.subscriptions.update(subscription.id, {
-    items: newPlans.map((planObj) => {
-      const planType = Object.keys(planObj)[0];
-      return {
-        plan: planType,
-        quantity: planObj[planType]
-      }
-    })
+    items: buildSubscriptionItems(newPlans)
   })
 }
 
