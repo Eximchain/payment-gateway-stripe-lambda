@@ -36,6 +36,13 @@ async function apiUpdateDapps(email:string, body:string) {
     })
 }
 
+async function apiUpdatePayment(email: string, body: string){
+    const {paymentToken} = JSON.parse(body);
+    const {customer, subscription} = await stripe.read(email)
+    //TODO: implement api for updating payment info. Just grab the payment token from stripe that the user sends
+    //and update the stripe subscription for that particular user. 
+}
+
 async function apiCancel(email:string){    
     console.log(`Cancelling ${email}'s subscription`);
     const cancelledSub = await stripe.cancel(email);

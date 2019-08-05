@@ -69,6 +69,10 @@ async function updateStripeSubscription(email:string, newPlans:StripePlan[]) {
   })
 }
 
+async function updateCustomerPayment(email: string, paymentToken:string){
+  //TODO: implement update customer payment
+}
+
 async function getStripeCustomer(email:string) {
   const matchingList = await stripe.customers.list({ email })
 
