@@ -18,8 +18,8 @@ export function response(body:object) {
 async function apiRead(email:string) {
     console.log(`Reading user data for ${email}`);
     const user = await cognito.getUser(email);
-    const stripeData = await stripe.read(email);
-    return response({ user, ...stripeData });
+    const stripeData = user ? await stripe.read(email) : {};
+    return response({ user, ...stripeData })
 }
 
 async function apiUpdateDapps(email:string, body:string) {
