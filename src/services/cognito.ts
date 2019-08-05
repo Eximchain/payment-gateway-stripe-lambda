@@ -7,7 +7,7 @@ const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18
 
 export type AttributeMapType = { [Name: string]: CognitoTypes.AttributeValueType }
 
-interface DappBotUser {
+export interface DappBotUser {
     Username: string
     Email: string
     UserAttributes: AttributeMapType
@@ -47,10 +47,6 @@ async function promiseAdminGetUser(cognitoUsername: string) {
         PreferredMfaSetting, UserMFASettingList, MFAOptions
     } as DappBotUser;
     return user;
-}
-
-function formatUserForClient(CognitoUser: PromiseResult<AdminGetUserResponse, AWSError>) {
-
 }
 
 function numDapps(plans: StripePlan[], typeOfPlan: string) {
@@ -113,6 +109,5 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlan[])
 export default {
     createUser: promiseAdminCreateUser,
     updateDapps: promiseUpdateDapps,
-    getUser: promiseAdminGetUser,
-    formatUser: formatUserForClient
+    getUser: promiseAdminGetUser
 }
