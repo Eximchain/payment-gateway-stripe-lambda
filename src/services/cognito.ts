@@ -3,6 +3,7 @@ import { StripePlan } from './stripe';
 import { CognitoIdentityServiceProvider as CognitoTypes, AWSError } from 'aws-sdk';
 import { PromiseResult } from 'aws-sdk/lib/request';
 import { AdminGetUserResponse } from 'aws-sdk/clients/cognitoidentityserviceprovider';
+import { XOR } from 'ts-xor';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
 export type AttributeMapType = { [Name: string]: CognitoTypes.AttributeValueType }
@@ -25,28 +26,29 @@ export interface DappBotUser {
     UserMFASettingList?: CognitoTypes.UserMFASettingListType;
 }
 
+function formatUser(user:XOR<CognitoTypes.AdminGetUserResponse, CognitoTypes.UserType> | undefined){
+    if (!user) return false;
+    let Attributes = user.Attributes || user.UserAttributes || [];
+    const { PreferredMfaSetting, UserMFASettingList, MFAOptions } = user;
+    const emailAttr = Attributes.find(({ Name }) => Name === 'email') as CognitoTypes.AttributeType;
+    return {
+        Username : user.Username as string,
+        Email : emailAttr.Value as string,
+        UserAttributes : Attributes.reduce((attrObj, attr) => {
+            attrObj[attr.Name] = attr.Value || '';
+            return attrObj
+        }, {} as AttributeMapType),
+        PreferredMfaSetting, UserMFASettingList, MFAOptions
+    } as DappBotUser
+}
+
 async function promiseAdminGetUser(cognitoUsername: string) {
     let params = {
         UserPoolId: cognitoUserPoolId,
         Username: cognitoUsername
     };
     const user = await cognito.adminGetUser(params).promise();
-    user.UserAttributes = user.UserAttributes || [];
-    if (!user) {
-        return false;
-    }
-    const { PreferredMfaSetting, UserMFASettingList, MFAOptions, UserAttributes } = user;
-    const emailAttr = UserAttributes.find(({ Name }) => Name === 'email') as CognitoTypes.AttributeType;
-    return {
-        Username: user.Username,
-        Email: emailAttr.Value as string,
-        UserAttributes: UserAttributes.reduce((attrObj, attr) => {
-            attrObj[attr.Name] = attr.Value || '';
-            return attrObj
-        }, {} as AttributeMapType),
-        PreferredMfaSetting, UserMFASettingList, MFAOptions
-    } as DappBotUser;
-    return user;
+    return formatUser(user);
 }
 
 function numDapps(plans: StripePlan[], typeOfPlan: string) {
@@ -102,7 +104,9 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlan[])
             numDapps(plans, "professional"),
         ]
     }
-    return cognito.adminCreateUser(params).promise();
+
+    const createResult = await cognito.adminCreateUser(params).promise();
+    return formatUser(createResult.User)
 }
 
 
