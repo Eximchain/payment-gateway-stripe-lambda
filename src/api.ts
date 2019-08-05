@@ -1,6 +1,7 @@
 import services from './services';
 import { ValidSubscriptionStates } from './services/stripe';
 const { cognito, stripe, sns } = services;
+import {matchLoginBody, UpdateUserActions} from './validate'
 
 export function response(body:object) {
     let responseHeaders = {
@@ -36,11 +37,15 @@ async function apiUpdateDapps(email:string, body:string) {
     })
 }
 
+//TODO: finish implementing api for updating payment info. Just grab the payment token from stripe that the user sends
+//and update the stripe subscription for that particular user. 
 async function apiUpdatePayment(email: string, body: string){
     const {paymentToken} = JSON.parse(body);
     const {customer, subscription} = await stripe.read(email)
-    //TODO: implement api for updating payment info. Just grab the payment token from stripe that the user sends
-    //and update the stripe subscription for that particular user. 
+    return response({
+        success: true
+    })
+    
 }
 
 async function apiCancel(email:string){    
@@ -76,9 +81,20 @@ async function apiCreate(body:string) {
     })
 }
 
+async function apiUpdate(email: string, body:string){
+    switch (matchLoginBody(body)){
+        case UpdateUserActions.UpdatePlan:
+            return apiUpdateDapps(email, body)
+            break
+        case UpdateUserActions.UpdatePayment:
+            return apiUpdatePayment(email, body)
+            break
+    }
+
+}
 export default {
     read: apiRead,
-    update: apiUpdateDapps,
+    update: apiUpdate,
     create: apiCreate,
     cancel: apiCancel
 }
