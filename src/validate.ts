@@ -13,33 +13,26 @@ export enum AuthParamNames {
   PasswordResetCode = 'passwordResetCode'
 }
 
-export const LoginParams = {
-  Login : [AuthParamNames.Username, AuthParamNames.Password],
-  Refresh : [AuthParamNames.RefreshToken],
-  ConfirmNewPassword : [AuthParamNames.Username, AuthParamNames.Session, AuthParamNames.NewPassword],
-  ConfirmMFALogin : [AuthParamNames.Username, AuthParamNames.Session, AuthParamNames.MFALoginCode],
-  ConfirmMFASetup : [AuthParamNames.Session, AuthParamNames.MFASetupCode]
+export enum UpdateParamNames {
+  Plan = 'plan',
+  Payment = 'payment'
 }
 
-export enum LoginActions {
-  Login = 'LOGIN',
-  Refresh = 'REFRESH',
-  ConfirmNewPassword = 'CONFIRM_NEW_PASSWORD',
-  ConfirmMFALogin = 'CONFIRM_MFA_LOGIN',
-  ConfirmMFASetup = 'CONFIRM_MFA_SETUP'
+export const UpdateUserParams = {
+  UpdatePlan : [AuthParamNames.Username, AuthParamNames.Session, UpdateParamNames.Plan],
+  UpdatePayment: [AuthParamNames.Username, AuthParamNames.Session, UpdateParamNames.Payment]
+}
+
+export enum UpdateUserActions {
+  UpdatePlan = 'UPDATE_PLAN',
+  UpdatePayment = 'UPDATE_PAYMENT'
 }
 function matchLoginBody(body:Object){
-  if (bodyHas(body, LoginParams.Login)) {
-      return LoginActions.Login;
-  } else if (bodyHas(body, LoginParams.Refresh)) {
-      return LoginActions.Refresh;
-  } else if (bodyHas(body, LoginParams.ConfirmNewPassword)) {
-      return LoginActions.ConfirmNewPassword;
-  } else if (bodyHas(body, LoginParams.ConfirmMFALogin)) {
-      return LoginActions.ConfirmMFALogin;
-  } else if (bodyHas(body, LoginParams.ConfirmMFASetup)) {
-      return LoginActions.ConfirmMFASetup;
+  if (bodyHas(body, UpdateUserParams.UpdatePlan)){
+    return UpdateUserActions.UpdatePlan
+  } else if (bodyHas(body, UpdateUserParams.UpdatePayment)){
+    return UpdateUserActions.UpdatePayment
   } else {
-      return false;
+    return false;
   }
 }
