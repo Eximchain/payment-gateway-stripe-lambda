@@ -28,11 +28,12 @@ async function apiUpdateDapps(email:string, body:string) {
     // TODO: Verify that the user doesn't have more dapps
     // than they're trying to update to
     const updatedSub = await stripe.update(email, plans);
-    let result = await cognito.updateDapps(email, plans)
+    const updateDappResult = await cognito.updateDapps(email, plans);
+    const newUser = await cognito.getUser(email);
     return response({
         success: true,
         updatedSubscription : updatedSub,
-        updatedUser : result
+        updatedUser : newUser
     })
 }
 

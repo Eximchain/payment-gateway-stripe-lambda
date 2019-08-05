@@ -1,8 +1,6 @@
 import { AWS, cognitoUserPoolId } from '../env';
 import { StripePlan } from './stripe';
 import { CognitoIdentityServiceProvider as CognitoTypes, AWSError } from 'aws-sdk';
-import { PromiseResult } from 'aws-sdk/lib/request';
-import { AdminGetUserResponse } from 'aws-sdk/clients/cognitoidentityserviceprovider';
 import { XOR } from 'ts-xor';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
