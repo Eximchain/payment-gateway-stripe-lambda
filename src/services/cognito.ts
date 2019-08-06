@@ -53,7 +53,7 @@ function numDapps(plans: StripePlans, typeOfPlan: StripePlanNames) {
     let planName = `custom:${typeOfPlan}_limit`
     return {
         Name: planName,
-        Value: plans[typeOfPlan].toString()
+        Value: (plans[typeOfPlan] || 0).toString()
     }
 }
 
