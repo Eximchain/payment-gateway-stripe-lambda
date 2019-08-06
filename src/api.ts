@@ -47,14 +47,6 @@ async function apiUpdateDapps(email:string, body:string) {
 async function apiUpdatePayment(email: string, body: string){
     const requestBody:UpdatePaymentArgs = JSON.parse(body);
     const customer = await stripe.updatePayment(email, requestBody.token) 
-    const {subscription} = await stripe.read(email)
-    let result
-    if(!subscription){
-        throw new Error(`No subscription for email ${email} created`)
-    }
-    if(subscription.status === SubscriptionStates.active){
-        result = await cognito.updatePaymentStatus(email, PaymentStatus.ACTIVE)
-    }
     
     //take the customer returned from stripe and update it with the new paymentToken
     return response({
