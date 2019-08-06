@@ -17,7 +17,7 @@ export enum UpdateUserActions {
   UpdatePlan = 'UPDATE_PLAN',
   UpdatePayment = 'UPDATE_PAYMENT'
 }
-export function matchLoginBody(body:Object){
+export function matchUpdateBody(body:Object){
   if (bodyHas(body, UpdateUserParams.UpdatePlan)){
     return UpdateUserActions.UpdatePlan
   } else if (bodyHas(body, UpdateUserParams.UpdatePayment)){

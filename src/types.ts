@@ -1,9 +1,5 @@
-import { CreateStripeArgs, StripePlans} from './services/stripe'
-export interface Plan {
-  Standard: number,
-  Professional: number,
-  Enterprise: number
-}
+import {StripePlans} from './services/stripe'
+
 
 export interface CreateArgs {
   email: string,

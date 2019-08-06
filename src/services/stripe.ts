@@ -88,9 +88,7 @@ async function updateCustomerPayment(email: string, paymentToken:string){
   if(customer === null){
     throw new Error( `A customer does not exist for email ${email} in stripe`)
   }
-  const result = await stripe.customers.update(customer.id, {source:paymentToken})
-  return result
-
+  return await stripe.customers.update(customer.id, {source:paymentToken})
 
 }
 

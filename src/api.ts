@@ -2,7 +2,7 @@ import services from './services';
 import { ValidSubscriptionStates, Customer, SubscriptionStates } from './services/stripe';
 const  { cognito, stripe, sns } = services;
 import {PaymentStatus} from './services/sns'
-import {matchLoginBody, UpdateUserActions} from './validate'
+import {matchUpdateBody, UpdateUserActions} from './validate'
 import {CreateArgs, UpdatePaymentArgs} from './types'
 
 export function response(body:object) {
@@ -96,13 +96,16 @@ async function apiCreate(body:string) {
 }
 
 async function apiUpdate(email: string, body:string){
-    switch (matchLoginBody(body)){
+    switch (matchUpdateBody(body)){
         case UpdateUserActions.UpdatePlan:
             return apiUpdateDapps(email, body)
-            break
         case UpdateUserActions.UpdatePayment:
             return apiUpdatePayment(email, body)
-            break
+        default:
+            return response({
+                success: false,
+                error: "The body of the request was malformed"
+            })
     }
 
 }
