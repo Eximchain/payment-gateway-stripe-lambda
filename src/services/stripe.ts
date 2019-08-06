@@ -31,6 +31,8 @@ export interface StripePlans {
   enterprise : number
 }
 
+export type StripePlanNames = keyof StripePlans;
+
 export interface CreateStripeArgs {
   name: string
   email: string
