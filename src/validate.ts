@@ -3,14 +3,13 @@ function bodyHas(body:Object, propertyNames:string[]){
 }
 
 export enum UpdateParamNames {
-  Username = 'username',
-  Plan = 'plan',
-  Payment = 'payment'
+  Plans = 'plans',
+  Token = 'token'
 }
 
 export const UpdateUserParams = {
-  UpdatePlan : [UpdateParamNames.Username, UpdateParamNames.Plan],
-  UpdatePayment: [UpdateParamNames.Username, UpdateParamNames.Payment]
+  UpdatePlan : [UpdateParamNames.Plans],
+  UpdatePayment: [UpdateParamNames.Token]
 }
 
 export enum UpdateUserActions {
