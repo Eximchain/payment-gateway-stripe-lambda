@@ -30,12 +30,15 @@ async function apiUpdateDapps(email:string, body:string) {
     console.log("Processing order: ", body)
     // TODO: Verify that the user doesn't have more dapps
     // than they're trying to update to
+
     const updatedSub = await stripe.updateSubscription(email, plans);
-    let result = await cognito.updateDapps(email, plans)
+    const updateDappResult = await cognito.updateDapps(email, plans);
+    const newUser = await cognito.getUser(email);
+
     return response({
         success: true,
         updatedSubscription : updatedSub,
-        updatedUser : result
+        updatedUser : newUser
     })
 }
 
@@ -73,19 +76,24 @@ async function apiCancel(email:string){
 }
 
 async function apiCreate(body:string) {
-    const requestBody: CreateArgs = JSON.parse(body)
-    const { email, plans, name, coupon, token } = requestBody
+    const { email, plans, name, coupon, token } = JSON.parse(body)
 
     console.log("customer & subscription creation")
+
+    // If they haven't provided a payment method, replace
+    // plans with a one-standard-dapp subscription.
+    const validToken = await stripe.isTokenValid(token);
+    const allowedPlan = validToken ? plans : { standard : 1 };
     const { customer, subscription } = await stripe.create({
-        name, email, token, plans, coupon
+        name, email, token, coupon,
+        plans : allowedPlan
     })
-    
+
     if (!ValidSubscriptionStates.includes(subscription.status)) {
         throw Error(`Subscription failed because subscription status is ${subscription.status}`)
     }
     
-    let newUser = await cognito.createUser(email, plans)
+    let newUser = await cognito.createUser(email, allowedPlan)
 
     return response({
         success: true,

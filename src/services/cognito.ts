@@ -1,8 +1,6 @@
 import { AWS, cognitoUserPoolId } from '../env';
-import { StripePlan } from './stripe';
+import { StripePlan, StripePlans, StripePlanNames } from './stripe';
 import { CognitoIdentityServiceProvider as CognitoTypes, AWSError } from 'aws-sdk';
-import { PromiseResult } from 'aws-sdk/lib/request';
-import { AdminGetUserResponse } from 'aws-sdk/clients/cognitoidentityserviceprovider';
 import { XOR } from 'ts-xor';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
@@ -51,15 +49,15 @@ async function promiseAdminGetUser(cognitoUsername: string) {
     return formatUser(user);
 }
 
-function numDapps(plans: StripePlan[], typeOfPlan: string) {
+function numDapps(plans: StripePlans, typeOfPlan: StripePlanNames) {
     let planName = `custom:${typeOfPlan}_limit`
     return {
         Name: planName,
-        Value: '1'
+        Value: (plans[typeOfPlan] || 0).toString()
     }
 }
 
-export async function promiseUpdateDapps(email: string, plans: StripePlan[]) {
+export async function promiseUpdateDapps(email: string, plans: StripePlans) {
     let params = {
         "UserAttributes": [
             numDapps(plans, "standard"),
@@ -81,7 +79,7 @@ function generatePassword(length: number) {
     return retVal;
 }
 
-export async function promiseAdminCreateUser(email: string, plans: StripePlan[]) {
+export async function promiseAdminCreateUser(email: string, plans: StripePlans) {
     let params = {
         UserPoolId: cognitoUserPoolId,
         Username: email,
