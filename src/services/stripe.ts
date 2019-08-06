@@ -70,7 +70,14 @@ async function updateStripeSubscription(email:string, newPlans:StripePlan[]) {
 }
 
 async function updateCustomerPayment(email: string, paymentToken:string){
-  //TODO: implement update customer payment
+  const customer = await getStripeCustomer(email)
+  if(customer === null){
+    throw new Error( `A customer does not exist for email ${email} in stripe`)
+  }
+  const result = await stripe.customers.update(customer.id, {source:paymentToken})
+  return result
+
+
 }
 
 async function getStripeCustomer(email:string) {
@@ -126,7 +133,8 @@ async function getStripeData(email:string) {
 
 export default {
   create: createCustomerAndSubscription,
-  update: updateStripeSubscription,
+  updateSubscription: updateStripeSubscription,
+  updatePayment: updateCustomerPayment,
   cancel: cancelStripeSubscription,
   read: getStripeData,
   stripe

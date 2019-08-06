@@ -109,9 +109,26 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlan[])
     return formatUser(createResult.User)
 }
 
+export async function promiseUpdatePaymentStatus(email: string, status:string){
+    const statusParams = {
+        Name: "custom:payment_status",
+        Value: status
+
+    }
+    const params = {
+        "UserPoolId": cognitoUserPoolId,
+        "Username": email,
+        "UserAttributes":[
+            statusParams
+        ]
+    }
+    return cognito.adminUpdateUserAttributes(params).promise()
+}
+
 
 export default {
     createUser: promiseAdminCreateUser,
     updateDapps: promiseUpdateDapps,
+    updatePaymentStatus: promiseUpdatePaymentStatus,
     getUser: promiseAdminGetUser
 }
