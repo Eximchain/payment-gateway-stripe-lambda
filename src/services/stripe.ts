@@ -132,10 +132,21 @@ async function getStripeData(email:string) {
   return { customer, subscription };
 }
 
+async function isTokenValid(tokenId:string | undefined) {
+  if (typeof tokenId !== 'string') return false;
+  try {
+    const tokenData = await stripe.tokens.retrieve(tokenId);
+    return !tokenData.used;
+  } catch (err) {
+    // Retrieve throws if this isn't a valid token.
+    return false;
+  }
+}
+
 export default {
   create: createCustomerAndSubscription,
   update: updateStripeSubscription,
   cancel: cancelStripeSubscription,
   read: getStripeData,
-  stripe
+  isTokenValid, stripe
 }

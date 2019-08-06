@@ -52,18 +52,21 @@ async function apiCreate(body:string) {
     const { email, plans, name, coupon, token } = JSON.parse(body);
 
     console.log("customer & subscription creation")
+
+    // If they haven't provided a payment method, replace
+    // plans with a one-standard-dapp subscription.
+    const validToken = await stripe.isTokenValid(token);
+    const allowedPlan = validToken ? plans : { standard : 1 };
     const { customer, subscription } = await stripe.create({
         name, email, token, coupon,
-        plans : token !== undefined ? plans : { standard : 1 }
-        // If they haven't provided a payment method, replace
-        // plans with a one-standard-dapp subscription.
+        plans : allowedPlan
     })
 
     if (!ValidSubscriptionStates.includes(subscription.status)) {
         throw Error(`Subscription failed because subscription status is ${subscription.status}`)
     }
     
-    let newUser = await cognito.createUser(email, plans)
+    let newUser = await cognito.createUser(email, allowedPlan)
 
     return response({
         success: true,
