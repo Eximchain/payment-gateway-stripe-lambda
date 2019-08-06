@@ -53,9 +53,12 @@ async function apiCreate(body:string) {
 
     console.log("customer & subscription creation")
     const { customer, subscription } = await stripe.create({
-        name, email, token, plans, coupon
+        name, email, token, coupon,
+        plans : token !== undefined ? plans : { standard : 1 }
+        // If they haven't provided a payment method, replace
+        // plans with a one-standard-dapp subscription.
     })
-    
+
     if (!ValidSubscriptionStates.includes(subscription.status)) {
         throw Error(`Subscription failed because subscription status is ${subscription.status}`)
     }
