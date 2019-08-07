@@ -42,9 +42,8 @@ async function apiUpdateDapps(email:string, body:string) {
 
 async function apiUpdatePayment(email: string, body: string){
     const {token} = JSON.parse(body);
-    console.log(token)
+    console.log("Processing order payment token.")
     const customer = await stripe.updatePayment(email, token) 
-        //take the customer returned from stripe and update it with the new paymentToken
     return response({
         success: true,
         updatedCustomer: customer
