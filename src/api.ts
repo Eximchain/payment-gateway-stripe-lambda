@@ -109,7 +109,7 @@ async function apiUpdate(email: string, body:string){
     }catch(err){
         return response({
             success:false,
-            err:{message: "Malformed update put"}
+            err:err
         })
     }
     
