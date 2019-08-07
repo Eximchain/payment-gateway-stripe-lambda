@@ -91,8 +91,13 @@ async function getStripeCustomer(email:string) {
   } else if (matchingList.data.length > 1) {
     throw new Error(`Two customers listed for ${email}, must be an error!`);
   }
-
-  return matchingList.data[0];
+  
+  // Performing additional retrieve allows us to expand
+  // the source_data on the customer object.
+  const customerId = matchingList.data[0].id;
+  return await stripe.customers.retrieve(customerId, {
+    expand : ['default_source']
+  })
 }
 
 async function getStripeSubscription(stripeCustomerId:string) {
