@@ -91,8 +91,6 @@ async function apiCreate(body:string) {
 }
 
 async function apiUpdate(email: string, body:string){
-    console.log(body)
-    console.log(matchUpdateBody(body))
     try{
         switch (matchUpdateBody(body)){
             case UpdateUserActions.UpdatePlan:
