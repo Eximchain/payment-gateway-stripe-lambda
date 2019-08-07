@@ -6,13 +6,13 @@ import webhooks from './webhooks';
 exports.managementHandler = async (request:APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase();
     let callerEmail = request.requestContext.authorizer.claims.email; 
-    console.log(callerEmail)
+    console.log("caller: ",callerEmail)
     try {
         switch (method) {
             case 'GET':
                 return await api.read(callerEmail);
             case 'PUT':
-                return await api.update(callerEmail, JSON.parse(request.body as string));
+                return await api.update(callerEmail, request.body as string);
             case 'DELETE':
                 return await api.cancel(callerEmail);
             case 'OPTIONS':

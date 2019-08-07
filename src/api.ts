@@ -4,6 +4,7 @@ const  { cognito, stripe, sns } = services;
 import {PaymentStatus} from './services/sns'
 import {matchUpdateBody, UpdateUserActions} from './validate'
 import {CreateArgs, UpdatePaymentArgs} from './types'
+import { CloudWatchEvents } from 'aws-sdk';
 
 export function response(body:object) {
     let responseHeaders = {
@@ -45,14 +46,15 @@ async function apiUpdateDapps(email:string, body:string) {
 //TODO: finish implementing api for updating payment info. Just grab the payment token from stripe that the user sends
 //and update the stripe subscription for that particular user. 
 async function apiUpdatePayment(email: string, body: string){
-    const requestBody:UpdatePaymentArgs = JSON.parse(body);
-    const customer = await stripe.updatePayment(email, requestBody.token) 
-    
-    //take the customer returned from stripe and update it with the new paymentToken
+    const {token} = JSON.parse(body);
+    console.log(token)
+    const customer = await stripe.updatePayment(email, token) 
+        //take the customer returned from stripe and update it with the new paymentToken
     return response({
         success: true,
         updatedCustomer: customer
     })
+   
     
 }
 
@@ -100,13 +102,29 @@ async function apiUpdate(email: string, body:string){
     console.log(matchUpdateBody(body))
     switch (matchUpdateBody(body)){
         case UpdateUserActions.UpdatePlan:
-            return apiUpdateDapps(email, body)
+            try{
+                return await apiUpdateDapps(email, body)
+            }catch(err){
+                return response({
+                    success:false,
+                    err
+                })
+            }
         case UpdateUserActions.UpdatePayment:
-            return apiUpdatePayment(email, body)
+            try{
+                return await apiUpdatePayment(email, body)
+            }catch(err){
+                console.log(err)
+                return response({
+                    success:false,
+                    err,
+                    apitype:"update payment fail"
+                })
+            }
         default:
             return response({
-                success: false,
-                error: "The body of the request was malformed"
+                success:false,
+                err:{message: "Malformed update put"}
             })
     }
 

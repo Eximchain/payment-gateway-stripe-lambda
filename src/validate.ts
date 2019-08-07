@@ -8,7 +8,7 @@ export enum UpdateParamNames {
 }
 
 export const UpdateUserParams = {
-  UpdatePlan : [UpdateParamNames.Plans],
+  UpdatePlan : [ UpdateParamNames.Plans],
   UpdatePayment: [UpdateParamNames.Token]
 }
 
@@ -16,10 +16,11 @@ export enum UpdateUserActions {
   UpdatePlan = 'UPDATE_PLAN',
   UpdatePayment = 'UPDATE_PAYMENT'
 }
-export function matchUpdateBody(body:Object){
-  if (bodyHas(body, UpdateUserParams.UpdatePlan)){
+export function matchUpdateBody(body:string){
+  const bodyParsed = JSON.parse(body)
+  if (bodyHas(bodyParsed, UpdateUserParams.UpdatePlan)){
     return UpdateUserActions.UpdatePlan
-  } else if (bodyHas(body, UpdateUserParams.UpdatePayment)){
+  } else if (bodyHas(bodyParsed, UpdateUserParams.UpdatePayment)){
     return UpdateUserActions.UpdatePayment
   } else {
     return false;
