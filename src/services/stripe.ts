@@ -1,4 +1,4 @@
-import { stripeKey, PLAN_IDS } from '../env';
+import { stripeKey } from '../env';
 import Stripe from 'stripe';
 export const stripe = new Stripe(stripeKey);
 

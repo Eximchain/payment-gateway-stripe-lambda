@@ -100,33 +100,26 @@ async function apiCreate(body:string) {
 async function apiUpdate(email: string, body:string){
     console.log(body)
     console.log(matchUpdateBody(body))
-    switch (matchUpdateBody(body)){
-        case UpdateUserActions.UpdatePlan:
-            try{
-                return await apiUpdateDapps(email, body)
-            }catch(err){
-                return response({
-                    success:false,
-                    err
-                })
-            }
-        case UpdateUserActions.UpdatePayment:
-            try{
+    try{
+        switch (matchUpdateBody(body)){
+            case UpdateUserActions.UpdatePlan:
+                return await apiUpdateDapps(email, body)          
+            case UpdateUserActions.UpdatePayment:
                 return await apiUpdatePayment(email, body)
-            }catch(err){
-                console.log(err)
+                
+            default:
                 return response({
                     success:false,
-                    err,
-                    apitype:"update payment fail"
+                    err:{message: "Malformed update put"}
                 })
-            }
-        default:
-            return response({
-                success:false,
-                err:{message: "Malformed update put"}
-            })
+        }
+    }catch(err){
+        return response({
+            success:false,
+            err:{message: "Malformed update put"}
+        })
     }
+    
 
 }
 export default {

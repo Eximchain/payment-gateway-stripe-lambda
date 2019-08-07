@@ -10,17 +10,12 @@ export const stripeKey = process.env.STRIPE_API_KEY as string;
 export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 export const snsTopicARN = process.env.SNS_TOPIC_ARN as string;
 
-export const PLAN_IDS = {
-    STANDARD : '',
-    PROFESSIONAL : '',
-    ENTERPRISE : ''
-}
 
 UnconfiguredAWS.config.update({region: awsRegion});
 export const AWS = UnconfiguredAWS;
 
 
 export default { 
-    AWS, awsRegion, cognitoUserPoolId, stripeKey, PLAN_IDS,
+    AWS, awsRegion, cognitoUserPoolId, stripeKey,
     stripeWebhookSecret, snsTopicARN
 };
