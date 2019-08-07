@@ -3,7 +3,6 @@ import { ValidSubscriptionStates, Customer, SubscriptionStates } from './service
 const  { cognito, stripe, sns } = services;
 import {PaymentStatus} from './services/sns'
 import {matchUpdateBody, UpdateUserActions} from './validate'
-import {CreateArgs, UpdatePaymentArgs} from './types'
 import { CloudWatchEvents } from 'aws-sdk';
 
 export function response(body:object) {
