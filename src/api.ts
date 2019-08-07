@@ -29,9 +29,6 @@ async function apiRead(email:string) {
 async function apiUpdateDapps(email:string, body:string) {
     const { plans } = JSON.parse(body);
     console.log("Processing order: ", body)
-    // TODO: Verify that the user doesn't have more dapps
-    // than they're trying to update to
-
     const updatedSub = await stripe.updateSubscription(email, plans);
     const updateDappResult = await cognito.updateDapps(email, plans);
     const newUser = await cognito.getUser(email);
@@ -43,8 +40,6 @@ async function apiUpdateDapps(email:string, body:string) {
     })
 }
 
-//TODO: finish implementing api for updating payment info. Just grab the payment token from stripe that the user sends
-//and update the stripe subscription for that particular user. 
 async function apiUpdatePayment(email: string, body: string){
     const {token} = JSON.parse(body);
     console.log(token)
