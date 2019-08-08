@@ -72,7 +72,7 @@ async function apiCancel(email:string){
 async function apiCreate(body:string) {
     const { email, plans, name, coupon, token } = JSON.parse(body)
 
-    console.log(`Creating customer, subscription, & Cognito acct for $${email}`)
+    console.log(`Creating customer, subscription, & Cognito acct for ${email}`)
 
     // If they haven't provided a payment method, replace
     // plans with a one-standard-dapp subscription.
