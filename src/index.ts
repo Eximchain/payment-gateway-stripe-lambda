@@ -46,6 +46,8 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
             stripe_event = await Stripe.decodeWebhook(request.body, request.headers['Stripe-Signature']);
         }
         switch (stripe_event.type){
+            case WebhookEventTypes.successfulPayment:
+                return await webhooks.successfulPayment(stripe_event);
             case WebhookEventTypes.failedPayment:
                 return await webhooks.failedPayment(stripe_event);
             case WebhookEventTypes.trialEnding:
