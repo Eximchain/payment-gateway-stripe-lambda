@@ -6,7 +6,6 @@ import webhooks from './webhooks';
 exports.managementHandler = async (request:APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase();
     let callerEmail = request.requestContext.authorizer.claims.email; 
-    console.log("caller: ",callerEmail)
     try {
         switch (method) {
             case 'GET':
