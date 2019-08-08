@@ -27,7 +27,7 @@ async function apiRead(email:string) {
 
 async function apiUpdateDapps(email:string, body:string) {
     const { plans } = JSON.parse(body);
-    console.log("Processing order: ", body)
+    console.log(`Updating dapp counts for ${email}`)
     const updatedSub = await stripe.updateSubscription(email, plans);
     const updateDappResult = await cognito.updateDapps(email, plans);
     const newUser = await cognito.getUser(email);
@@ -41,14 +41,20 @@ async function apiUpdateDapps(email:string, body:string) {
 
 async function apiUpdatePayment(email: string, body: string){
     const {token} = JSON.parse(body);
-    console.log("Processing order payment token.")
-    const customer = await stripe.updatePayment(email, token) 
-    return response({
-        success: true,
-        updatedCustomer: customer
-    })
-   
-    
+    console.log(`Updating payment source for ${email}`)
+    const validToken = await stripe.isTokenValid(token);
+    if (validToken) {
+        const customer = await stripe.updatePayment(email, token) 
+        return response({
+            success: true,
+            updatedCustomer: customer
+        })
+    } else {
+        return response({
+            success: false,
+            err : new Error("Provided Stripe token was not valid.")
+        })
+    }
 }
 
 async function apiCancel(email:string){    
@@ -65,7 +71,7 @@ async function apiCancel(email:string){
 async function apiCreate(body:string) {
     const { email, plans, name, coupon, token } = JSON.parse(body)
 
-    console.log("customer & subscription creation")
+    console.log(`Creating customer, subscription, & Cognito acct for $${email}`)
 
     // If they haven't provided a payment method, replace
     // plans with a one-standard-dapp subscription.
@@ -101,7 +107,7 @@ async function apiUpdate(email: string, body:string){
             default:
                 return response({
                     success:false,
-                    err:{message: "Malformed update put"}
+                    err:{message: "PUT body did not match shape for updating dapp allotments or payment source."}
                 })
         }
     }catch(err){
