@@ -1,4 +1,4 @@
-import { stripeKey, PLAN_IDS } from '../env';
+import { stripeKey } from '../env';
 import Stripe from 'stripe';
 export const stripe = new Stripe(stripeKey);
 
@@ -83,6 +83,15 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   })
 }
 
+async function updateCustomerPayment(email: string, paymentToken:string){
+  const customer = await getStripeCustomer(email)
+  if(customer === null){
+    throw new Error( `A customer does not exist for email ${email} in stripe`)
+  }
+  return await stripe.customers.update(customer.id, {source:paymentToken})
+
+}
+
 async function getStripeCustomer(email:string) {
   const matchingList = await stripe.customers.list({ email })
 
@@ -152,7 +161,8 @@ async function isTokenValid(tokenId:string | undefined) {
 
 export default {
   create: createCustomerAndSubscription,
-  update: updateStripeSubscription,
+  updateSubscription: updateStripeSubscription,
+  updatePayment: updateCustomerPayment,
   cancel: cancelStripeSubscription,
   read: getStripeData,
   isTokenValid, stripe
