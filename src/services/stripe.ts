@@ -1,4 +1,4 @@
-import { stripeKey, PLAN_IDS, stripeWebhookSecret } from '../env';
+import { stripeKey, stripeWebhookSecret } from '../env';
 import Stripe from 'stripe';
 export const stripe = new Stripe(stripeKey);
 
@@ -74,20 +74,19 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
   }
 }
 
-async function updateStripeSubscription(email:string, newPlans:StripePlans) {
-  const subscription = await getStripeSubscription(email);
-  if (!subscription){
-    throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
-  }
-  return await stripe.subscriptions.update(subscription.id, {
-    items: buildSubscriptionItems(newPlans)
-  })
-}
-
 export async function getStripeCustomerById(customerId:string) {
   return await stripe.customers.retrieve(customerId, {
     expand : ['default_source']
   })
+}
+
+async function updateCustomerPayment(email: string, paymentToken:string){
+  const customer = await getStripeCustomer(email)
+  if(customer === null){
+    throw new Error( `A customer does not exist for email ${email} in stripe`)
+  }
+  return await stripe.customers.update(customer.id, {source:paymentToken})
+
 }
 
 async function getStripeCustomer(email:string) {
@@ -107,7 +106,7 @@ async function getStripeCustomer(email:string) {
   })
 }
 
-async function getStripeSubscriptionById(stripeCustomerId:string) {
+async function getStripeSubscriptionByCustomerId(stripeCustomerId:string) {
   const matchingList = await stripe.subscriptions.list({
     customer: stripeCustomerId
   });
@@ -126,7 +125,7 @@ async function getStripeSubscription(email:string) {
   if (!customer){
     return null;
   }
-  return await getStripeSubscriptionById(customer.id);
+  return await getStripeSubscriptionByCustomerId(customer.id);
 }
 
 async function cancelStripeSubscription(email:string) {
@@ -137,11 +136,21 @@ async function cancelStripeSubscription(email:string) {
   return await stripe.subscriptions.del(subscription.id)
 }
 
+async function updateStripeSubscription(email:string, newPlans:StripePlans) {
+  const subscription = await getStripeSubscription(email);
+  if (!subscription){
+    throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
+  }
+  return await stripe.subscriptions.update(subscription.id, {
+    items: buildSubscriptionItems(newPlans)
+  })
+}
+
 async function getStripeData(email:string) {
   let customer, subscription;
   customer = await getStripeCustomer(email);
   if (customer){
-    subscription = await getStripeSubscriptionById(customer.id);
+    subscription = await getStripeSubscriptionByCustomerId(customer.id);
   }
   return { customer, subscription };
 }
@@ -162,13 +171,15 @@ async function decodeWebhook(webhookBody:string, signature:string|string[]){
 }
 
 export enum WebhookEventTypes {
-  failedPayment = 'invoice.failed_payment',
+  failedPayment = 'invoice.payment_failed',
+  successfulPayment = 'invoice.payment_succeeded',
   trialEnding = 'customer.subscription.trial_will_end'
 }
 
 export default {
   create: createCustomerAndSubscription,
-  update: updateStripeSubscription,
+  updateSubscription: updateStripeSubscription,
+  updatePayment: updateCustomerPayment,
   cancel: cancelStripeSubscription,
   read: getStripeData,
   isTokenValid, stripe, decodeWebhook
