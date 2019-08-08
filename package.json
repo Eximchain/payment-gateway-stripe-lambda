@@ -15,6 +15,7 @@
   "author": "Juan Huertas",
   "license": "UNLICENSED",
   "dependencies": {
+    "@sendgrid/mail": "^6.4.0",
     "@types/node": "^12.6.8",
     "@types/stripe": "^6.31.4",
     "amazon-cognito-identity-js": "^3.0.12",

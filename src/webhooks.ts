@@ -1,4 +1,5 @@
 import { stripe, Invoice, WebhookEvent, Subscription, getStripeCustomerById } from './services/stripe';
+import { sendTrialEndEmail } from './services/sendgrid';
 import { APIGatewayEvent } from './gateway-event-type';
 import { publishPaymentFailure } from './services/sns';
 import { response } from './api';
@@ -26,8 +27,9 @@ export async function handleSuccessfulPayment(event:WebhookEvent) {
 export async function handleTrialEnding(event:WebhookEvent) {
   const subscription = event.data.object as Subscription;
   const customer = await getStripeCustomerById(subscription.customer as string);
-  const { email, name } = customer;
-  // TODO: Build & send email HTML
+  const { email } = customer;
+  const emailReceipt = await sendTrialEndEmail(email as string);
+  console.log('Email receipt from Sendgrid: ',emailReceipt);
   return response({ message : `Acknowledged end of trial for ${email}` })
 }
 
