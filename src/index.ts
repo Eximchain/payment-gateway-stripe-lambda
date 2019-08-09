@@ -1,5 +1,6 @@
 'use strict';
 import api, { response } from './api';
+import { HTTPMethods, isHTTPMethod } from './validate';
 import { APIGatewayEvent } from './gateway-event-type';
 import Stripe, { WebhookEventTypes } from './services/stripe';
 import webhooks from './webhooks';
@@ -9,13 +10,13 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
     let callerEmail = request.requestContext.authorizer.claims.email;
     try {
         switch (method) {
-            case 'GET':
+            case HTTPMethods.GET:
                 return await api.read(callerEmail);
-            case 'PUT':
+            case HTTPMethods.PUT:
                 return await api.update(callerEmail, request.body as string);
-            case 'DELETE':
+            case HTTPMethods.DELETE:
                 return await api.cancel(callerEmail);
-            case 'OPTIONS':
+            case HTTPMethods.OPTIONS:
                 // Auto-return success for CORS pre-flight OPTIONS requests
                 // Note the empty body, no actual response data required
                 return response({});
@@ -32,11 +33,9 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
 
 exports.webhookHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
-    // which have no body 
-    if (request.httpMethod.toLowerCase() == 'options') {
-        // Note the empty body, no actual response data required
-        return response({});
-    }
+    // which have no body and can't be parsed.
+    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) return response({})
+    
     try {
         let stripe_event;
         if (request.body == null) throw new Error("Webhook request has no body.");
@@ -62,7 +61,7 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
 
 exports.signupHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
-    if (request.httpMethod.toLowerCase() == 'options') {
+    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) {
         // Note the empty body, no actual response data required
         return response({});
     }
