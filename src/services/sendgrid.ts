@@ -12,17 +12,18 @@ if (sendgridKey && sendgridKey !== ""){
 const FROM_ADDRESS = 'dappbot@eximchain.com';
 
 export async function sendTrialEndEmail(email:string) {
+  let emailHtml = trialEndEmail(managerDNS)
   let confirmationParam = {
     from : FROM_ADDRESS,
     to : email,
     subject : `Your DappBot Trial is Ending Soon, Unless...`,
-    html : trialEndEmail(managerDNS)
+    html : emailHtml
   }
   if (USING_SENDGRID){
     return sgMail.send(confirmationParam);
   } else {
-    let msg = `No Sendgrid API key loaded, not sending following email: ${JSON.stringify(confirmationParam, undefined, 2)}`;
-    return msg
+    console.log(`No Sendgrid API key loaded, not sending a Trial Ending Soon email to ${email}.`);
+    return confirmationParam
   }
 }
 
