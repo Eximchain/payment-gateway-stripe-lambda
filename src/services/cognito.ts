@@ -5,6 +5,11 @@ import { CognitoIdentityServiceProvider as CognitoTypes } from 'aws-sdk';
 import { XOR } from 'ts-xor';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
+export enum PaymentProvider {
+    STRIPE = "STRIPE",
+    ADMIN = "ADMIN"
+}
+
 export type AttributeMapType = { [Name: string]: CognitoTypes.AttributeValueType }
 
 export interface DappBotUser {
@@ -104,6 +109,10 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlans) 
             {
                 Name: 'custom:payment_status',
                 Value: PaymentStatus.ACTIVE
+            },
+            {
+                Name: 'custom:payment_provider',
+                Value: PaymentProvider.STRIPE
             }
         ]
     }
