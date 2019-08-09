@@ -24,6 +24,10 @@ export async function publishPaymentFailure(email:string){
   return await publishNotification(email, PaymentStatus.LAPSED);
 }
 
+export async function publishPaymentSuccess(email:string){
+  return await publishNotification(email, PaymentStatus.ACTIVE);
+}
+
 export async function publishCancellation(email:string){
   return await publishNotification(email, PaymentStatus.CANCELLED);
 }
