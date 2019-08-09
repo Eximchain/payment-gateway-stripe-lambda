@@ -1,6 +1,7 @@
 import { AWS, cognitoUserPoolId } from '../env';
-import { StripePlan, StripePlans, StripePlanNames } from './stripe';
-import { CognitoIdentityServiceProvider as CognitoTypes, AWSError } from 'aws-sdk';
+import { StripePlans, StripePlanNames } from './stripe';
+import { PaymentStatus } from './sns';
+import { CognitoIdentityServiceProvider as CognitoTypes } from 'aws-sdk';
 import { XOR } from 'ts-xor';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
@@ -100,6 +101,10 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlans) 
             numDapps(plans, "standard"),
             numDapps(plans, "enterprise"),
             numDapps(plans, "professional"),
+            {
+                Name: 'custom:payment_status',
+                Value: PaymentStatus.ACTIVE
+            }
         ]
     }
 
