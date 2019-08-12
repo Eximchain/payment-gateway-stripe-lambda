@@ -57,6 +57,7 @@ async function apiUpdatePayment(email: string, body: string){
         }
         const invoice = await stripe.retryLatestUnpaid(email);
         if (invoice) responseData.retriedInvoice = invoice;
+        console.log('invoice after retry: ',invoice);
         return response(responseData);
     } else {
         return response({
