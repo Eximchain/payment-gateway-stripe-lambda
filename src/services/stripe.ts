@@ -149,7 +149,6 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
 async function retryLatestUnpaid(email:string){
   const latestInvoice = await getUnpaidInvoiceIfExists(email);
   if (latestInvoice){
-    console.log('Found an invoice, attempting to retry: ', latestInvoice);
     return await retryInvoiceById(latestInvoice.id);
   } else {
     return null;
@@ -167,7 +166,6 @@ async function getUnpaidInvoiceIfExists(email:string){
     customer : customer.id
   });
   if (invoices.data.length === 0) {
-    console.log('No invoices, bailing out');
     return null;
   }
   const latestInvoice = invoices.data[0];
