@@ -16,10 +16,12 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@sendgrid/mail": "^6.4.0",
+    "@types/lodash.keyby": "^4.6.6",
     "@types/node": "^12.6.8",
     "@types/stripe": "^6.31.4",
     "amazon-cognito-identity-js": "^3.0.12",
     "aws-sdk": "^2.479.0",
+    "lodash.keyby": "^4.6.0",
     "node-fetch": "^2.6.0",
     "node-zip": "^1.1.1",
     "shelljs": "^0.8.3",

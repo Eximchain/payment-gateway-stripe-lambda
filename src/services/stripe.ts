@@ -1,11 +1,13 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
 import Stripe from 'stripe';
+import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
 
 // Extracting types we need here & elsewhere into
 // more convenient names.
 export type Customer = Stripe.customers.ICustomer;
 export type Subscription = Stripe.subscriptions.ISubscription;
+export type SubscriptionItem = Stripe.subscriptionItems.ISubscriptionItem;
 export type Invoice = Stripe.invoices.IInvoice;
 export type WebhookEvent = Stripe.events.IEvent;
 
@@ -42,19 +44,10 @@ export interface CreateStripeArgs {
   coupon?: string
 }
 
-function buildSubscriptionItems(plans:StripePlans){
-  const items = [];
-  if (plans.standard > 0) {
-    items.push({ plan : 'standard', quantity : plans.standard })
-  }
-  if (plans.professional > 0) {
-    items.push({ plan : 'professional', quantity : plans.professional })
-  }
-  if (plans.enterprise > 0) {
-    items.push({ plan : 'enterprise', quantity : plans.enterprise })
-  }
-  return items;
-}
+///////////////////////////////////////////////////
+////                 KEY METHODS
+///////////////////////////////////////////////////
+
 
 async function createCustomerAndSubscription({ name, email, token, plans, coupon }:CreateStripeArgs) {
   const newCustomer = await stripe.customers.create({ 
@@ -73,6 +66,19 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
     subscription: newSub
   }
 }
+
+async function getStripeData(email:string) {
+  let customer, subscription;
+  customer = await getStripeCustomer(email);
+  if (customer){
+    subscription = await getStripeSubscriptionByCustomerId(customer.id);
+  }
+  return { customer, subscription };
+}
+
+///////////////////////////////////////////////////
+////                 CUSTOMERS
+///////////////////////////////////////////////////
 
 export async function getStripeCustomerById(customerId:string) {
   return await stripe.customers.retrieve(customerId, {
@@ -105,6 +111,10 @@ async function getStripeCustomer(email:string) {
     expand : ['default_source']
   })
 }
+
+///////////////////////////////////////////////////
+////               SUBSCRIPTIONS
+///////////////////////////////////////////////////
 
 async function getStripeSubscriptionByCustomerId(stripeCustomerId:string) {
   const matchingList = await stripe.subscriptions.list({
@@ -141,11 +151,16 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   if (!subscription){
     throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
   }
+  const currentItems = subscription.items.data.slice();
   return await stripe.subscriptions.update(subscription.id, {
-    items: buildSubscriptionItems(newPlans)
+    items: buildSubscriptionItems(newPlans, currentItems)
   })
 }
 
+
+///////////////////////////////////////////////////
+////                  INVOICES
+///////////////////////////////////////////////////
 async function retryLatestUnpaid(email:string){
   const latestInvoice = await getUnpaidInvoiceIfExists(email);
   if (latestInvoice){
@@ -177,13 +192,36 @@ async function getUnpaidInvoiceIfExists(email:string){
   }
 }
 
-async function getStripeData(email:string) {
-  let customer, subscription;
-  customer = await getStripeCustomer(email);
-  if (customer){
-    subscription = await getStripeSubscriptionByCustomerId(customer.id);
+///////////////////////////////////////////////////
+////                  HELPERS
+///////////////////////////////////////////////////
+
+function buildSubscriptionItems(plans:StripePlans, currentItems?:SubscriptionItem[]){
+  if (currentItems) {
+    const currentByPlan = keyBy(currentItems, item => item.plan.id)
+    // For each key in plans:
+    // 
+    return currentItems.map((currentItem) => {
+      currentItem.quantity = plans[currentItem.id as StripePlanNames]
+      return {
+        plan : currentItem.plan.id,
+        id : currentItem.id,
+        quantity : plans[currentItem.id as StripePlanNames]
+      }
+    })
+  } else {
+    const items = [];
+    if (plans.standard > 0) {
+      items.push({ plan : 'standard', quantity : plans.standard })
+    }
+    if (plans.professional > 0) {
+      items.push({ plan : 'professional', quantity : plans.professional })
+    }
+    if (plans.enterprise > 0) {
+      items.push({ plan : 'enterprise', quantity : plans.enterprise })
+    }
+    return items;
   }
-  return { customer, subscription };
 }
 
 async function isTokenValid(tokenId:string | undefined) {
