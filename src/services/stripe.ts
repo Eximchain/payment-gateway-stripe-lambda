@@ -146,6 +146,37 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   })
 }
 
+async function retryLatestUnpaid(email:string){
+  const latestInvoice = await getUnpaidInvoiceIfExists(email);
+  if (latestInvoice){
+    return await retryInvoiceById(latestInvoice.id);
+  } else {
+    return null;
+  }
+}
+
+async function retryInvoiceById(invoiceId:string){
+  return await stripe.invoices.pay(invoiceId);
+}
+
+async function getUnpaidInvoiceIfExists(email:string){
+  const customer = await getStripeCustomer(email);
+  if (!customer) return null;
+  const invoices = await stripe.invoices.list({
+    customer : customer.id
+  });
+  if (invoices.data.length === 0) {
+    return null;
+  }
+  const latestInvoice = invoices.data[0];
+  if (latestInvoice.attempted && !latestInvoice.paid) {
+    return latestInvoice;
+  } else {
+    console.log('Latest invoice does not hit requirements of attempted but not paid.');
+    return null;
+  }
+}
+
 async function getStripeData(email:string) {
   let customer, subscription;
   customer = await getStripeCustomer(email);
@@ -182,5 +213,6 @@ export default {
   updatePayment: updateCustomerPayment,
   cancel: cancelStripeSubscription,
   read: getStripeData,
-  isTokenValid, stripe, decodeWebhook
+  isTokenValid, stripe, decodeWebhook,
+  retryLatestUnpaid
 }

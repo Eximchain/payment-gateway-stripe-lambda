@@ -1,5 +1,5 @@
 import services from './services';
-import { ValidSubscriptionStates, Customer, SubscriptionStates } from './services/stripe';
+import { ValidSubscriptionStates, Customer, SubscriptionStates, Invoice } from './services/stripe';
 const  { cognito, stripe, sns } = services;
 import {PaymentStatus} from './services/sns'
 import {matchUpdateBody, UpdateUserActions} from './validate'
@@ -39,16 +39,28 @@ async function apiUpdateDapps(email:string, body:string) {
     })
 }
 
+interface UpdatePaymentResponseData {
+    success: boolean
+    updatedCustomer: Customer
+    retriedInvoice?: Invoice
+}
+
 async function apiUpdatePayment(email: string, body: string){
     const {token} = JSON.parse(body);
     console.log(`Updating payment source for ${email}`)
     const validToken = await stripe.isTokenValid(token);
     if (validToken) {
         const customer = await stripe.updatePayment(email, token) 
-        return response({
+        let responseData:UpdatePaymentResponseData = {
             success: true,
-            updatedCustomer: customer
-        })
+            updatedCustomer : customer
+        }
+        const invoice = await stripe.retryLatestUnpaid(email);
+        if (invoice) {
+            responseData.retriedInvoice = invoice;
+            console.log("Found a past_due invoice and recharged it with new payment source.");
+        }
+        return response(responseData);
     } else {
         return response({
             success: false,
