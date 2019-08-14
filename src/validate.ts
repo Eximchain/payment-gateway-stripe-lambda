@@ -1,13 +1,7 @@
+import { HTTPMethods } from './responses';
+
 function bodyHas(body:Object, propertyNames:string[]){
   return propertyNames.every(name => body.hasOwnProperty(name))
-}
-
-export enum HTTPMethods {
-  GET = 'GET',
-  OPTIONS = 'OPTIONS',
-  PUT = 'PUT',
-  POST = 'POST',
-  DELETE = 'DELETE'
 }
 
 export function isHTTPMethod(method:string, HTTPMethod:HTTPMethods){

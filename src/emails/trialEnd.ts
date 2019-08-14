@@ -67,7 +67,7 @@ export function trialEndEmail(managerDNS: string) {
                   style="display:block; margin-bottom: 25px;" border="0" alt="Eximchain" /></a>
               <h2
                 style="font-size: 1.2em; font-weight: normal; margin-top: -10px; margin-bottom: 0.809em; color: #515762;">
-                DappBot Trial Update</h2>
+                DappBot Trial</h2>
             </td>
           </tr>
           <tr style="background: #fff;">
@@ -87,23 +87,46 @@ export function trialEndEmail(managerDNS: string) {
                     <!-- HEADER 2 -->
                     <h1
                       style="box-sizing: border-box; color: #2b333f; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 19px; font-weight: bold; margin-top: 0;"
-                      align="left">Thank you for trying out DappBot!</h1> <!-- BODY -->
+                      align="left">Your DappBot trial expires in 3 days!</h1> <!-- BODY -->
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
-                      align="left"> We hope you have been enjoying DappBot. Your 7 day free trial is expiring in 3 days.
+                      align="left">
+                      Your DappBot trial is almost over.   
+                      I hope you’ve had a chance to create and deploy your blockchain application with DappBot. 
+                      Here are some of DappBot’s powerful features that you might have missed:
+                    </p>
+                    <ul style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;">
+                      <li style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;">
+                        <strong>Speed:</strong> Save thousands of hours in prototyping your first blockchain application and ongoing DevOps effort – it takes only 3 steps in 5 minutes.
+                      </li>
+                      <li style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;">
+                        <strong>Scalability:</strong> Eliminate all scaling concerns by instantly deploying your blockchain application to 165 hosts around the world.
+                      </li>
+                      <li style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;">
+                        <strong>Simplicity:</strong> Simplify your ongoing development experience by deploying via GitHub branches, just like working with Pages (Coming Soon).
+                      </li>
+                    </ul>
+                    <!-- TODO: Add <ul> for list of features... Copy that style tag everywhere.  -->
+                    <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
+                      align="left"> 
+                      Let us know what you think about the DappBot experience, we would like to hear from you! 
+                      Please help us with a 
+                      <a href="https://douglas137.typeform.com/to/PNeE5F"
+                          style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
+                        short survey</a>
+                      (less than 5 mins). 
+                      Upon completing the survey, we will extend your trial access for an additional 14 days. Your feedback is valuable to us.  
                     </p>
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
-                      align="left"> You can finish activating your subscription now by entering credit card information
-                      into your <a href="${managerDNS}/home/user-settings"
+                      align="left">
+                      Please
+                      <a href="${managerDNS}/home/user-settings"
                         style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
-                        User Settings</a>. </p>
+                        subscribe</a>
+                      before your trial ends to ensure you don't lose access.
+                    </p>
+                    <!-- SIGNATURE -->
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
-                      align="left"> Alternately, if you would like to extend your trial by two more weeks, please <a
-                        href="https://imgflip.com/i/37koyd"
-                        style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
-                        fill out this survey</a> and provide your email. We're eager to learn more about how we can make
-                      this product better for you! </p> <!-- SIGNATURE -->
-                    <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
-                      align="left">Thank you, <br />Eximchain Team</p>
+                      align="left">Cheers, <br />The DappBot Team at Eximchain</p>
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
                       align="left"><strong
                         style="box-sizing: border-box; font-family: 'Helvetica Neue', Helvetica, sans-serif;">P.S.</strong>

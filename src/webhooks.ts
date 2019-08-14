@@ -1,7 +1,7 @@
+import { successResponse } from './responses';
 import { Invoice, WebhookEvent, Subscription, getStripeCustomerById } from './services/stripe';
 import { sendTrialEndEmail } from './services/sendgrid';
 import { publishPaymentFailure, publishPaymentSuccess } from './services/sns';
-import { response } from './api';
 
 export async function handleFailedPayment(event:WebhookEvent) {
   const invoice = event.data.object as Invoice;
@@ -9,7 +9,7 @@ export async function handleFailedPayment(event:WebhookEvent) {
   let msg = `Dappbot notified of ${customer_email}'s failed payment.`;
   console.log(msg);
   let notificationId = await publishPaymentFailure(customer_email);
-  return response({
+  return successResponse({
     message : msg,
     notificationId
   })
@@ -21,7 +21,7 @@ export async function handleSuccessfulPayment(event:WebhookEvent) {
   let msg = `Dappbot notified of ${customer_email}'s successful payment.`;
   console.log(msg)
   let notificationId = await publishPaymentSuccess(customer_email);
-  return response({
+  return successResponse({
     message : msg,
     notificationId
   })
@@ -35,7 +35,7 @@ export async function handleTrialEnding(event:WebhookEvent) {
   console.log(msg);
   const emailReceipt = await sendTrialEndEmail(email as string);
   console.log('Email receipt from Sendgrid: ',emailReceipt);
-  return response({ message :  msg })
+  return successResponse({ message :  msg })
 }
 
 export default {
