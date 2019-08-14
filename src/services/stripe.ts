@@ -7,6 +7,8 @@ export const stripe = new Stripe(stripeKey);
 // more convenient names.
 export type Customer = Stripe.customers.ICustomer;
 export type Subscription = Stripe.subscriptions.ISubscription;
+export type SubscriptionUpdateItem = Stripe.subscriptions.ISubscriptionUpdateItem;
+export type SubscriptionCreateItem = Stripe.subscriptions.ISubscriptionCreationItem;
 export type SubscriptionItem = Stripe.subscriptionItems.ISubscriptionItem;
 export type Invoice = Stripe.invoices.IInvoice;
 export type WebhookEvent = Stripe.events.IEvent;
@@ -48,17 +50,22 @@ export interface CreateStripeArgs {
 ////                 KEY METHODS
 ///////////////////////////////////////////////////
 
-
 async function createCustomerAndSubscription({ name, email, token, plans, coupon }:CreateStripeArgs) {
   const newCustomer = await stripe.customers.create({ 
     name, email, 
     description: `Customer for ${email}`,
     source: token 
   });
-
+  const subItems:SubscriptionCreateItem[] = [];
+  Object.keys(plans).forEach(plan => {
+    let quantity = plans[plan as StripePlanNames];
+    if (quantity > 0) {
+      subItems.push({ plan, quantity })
+    }
+  })
   const newSub = await stripe.subscriptions.create({
     customer: newCustomer.id,
-    items: buildSubscriptionItems(plans),
+    items: subItems,
     trial_period_days: 7
   })
   return {
@@ -152,8 +159,29 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
     throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
   }
   const currentItems = subscription.items.data.slice();
+  const items:SubscriptionUpdateItem[] = [];
+  const currentByPlan = keyBy(currentItems, item => item.plan.id)
+  Object.keys(newPlans).forEach((planId) => {
+    let newQuantity = newPlans[planId as StripePlanNames];
+    let currentItem = currentByPlan[planId];
+    if (newQuantity === 0) {
+      if (currentItem) items.push({
+        id : currentItem.id,
+        deleted : true
+      })
+    } else {
+      items.push(currentItem ? {
+        id : currentItem.id,
+        plan : planId,
+        quantity : newQuantity
+      } : {
+        plan : planId,
+        quantity : newQuantity
+      })
+    }
+  })
   return await stripe.subscriptions.update(subscription.id, {
-    items: buildSubscriptionItems(newPlans, currentItems)
+    items: items
   })
 }
 
@@ -197,29 +225,40 @@ async function getUnpaidInvoiceIfExists(email:string){
 ///////////////////////////////////////////////////
 
 function buildSubscriptionItems(plans:StripePlans, currentItems?:SubscriptionItem[]){
+
+  // We're rebuilding the item list for an existing subscription
   if (currentItems) {
+    const items:SubscriptionUpdateItem[] = [];
     const currentByPlan = keyBy(currentItems, item => item.plan.id)
-    // For each key in plans:
-    // 
-    return currentItems.map((currentItem) => {
-      currentItem.quantity = plans[currentItem.id as StripePlanNames]
-      return {
-        plan : currentItem.plan.id,
-        id : currentItem.id,
-        quantity : plans[currentItem.id as StripePlanNames]
+    Object.keys(plans).forEach((planId) => {
+      let newQuantity = plans[planId as StripePlanNames];
+      let currentItem = currentByPlan[planId];
+      if (newQuantity === 0) {
+        if (currentItem) items.push({
+          id : currentItem.id,
+          deleted : true
+        })
+      } else {
+        items.push(currentItem ? {
+          id : currentItem.id,
+          plan : planId,
+          quantity : newQuantity
+        } : {
+          plan : planId,
+          quantity : newQuantity
+        })
       }
     })
+    return items;
+  // We're buliding a new subscription item list 
   } else {
-    const items = [];
-    if (plans.standard > 0) {
-      items.push({ plan : 'standard', quantity : plans.standard })
-    }
-    if (plans.professional > 0) {
-      items.push({ plan : 'professional', quantity : plans.professional })
-    }
-    if (plans.enterprise > 0) {
-      items.push({ plan : 'enterprise', quantity : plans.enterprise })
-    }
+    const items:SubscriptionCreateItem[] = [];
+    Object.keys(plans).forEach(plan => {
+      let quantity = plans[plan as StripePlanNames];
+      if (plans[plan as StripePlanNames] > 0) {
+        items.push({ plan, quantity })
+      }
+    })
     return items;
   }
 }

@@ -1,6 +1,7 @@
 'use strict';
-import api, { response } from './api';
-import { HTTPMethods, isHTTPMethod } from './validate';
+import api from './api';
+import { HTTPMethods, unexpectedErrorResponse, successResponse, userErrorResponse } from './responses';
+import { isHTTPMethod } from './validate';
 import { APIGatewayEvent } from './gateway-event-type';
 import Stripe, { WebhookEventTypes } from './services/stripe';
 import webhooks from './webhooks';
@@ -19,22 +20,19 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
             case HTTPMethods.OPTIONS:
                 // Auto-return success for CORS pre-flight OPTIONS requests
                 // Note the empty body, no actual response data required
-                return response({});
+                return successResponse({});
             default:
-                return response({
-                    success: false,
-                    err: new Error(`Unrecognized HTTP method: ${method}.`)
-                })
+                return userErrorResponse(new Error(`Unrecognized HTTP method: ${method}.`))
         }
     } catch (err) {
-        return response({ success: false, err })
+        return unexpectedErrorResponse(err)
     }
 };
 
 exports.webhookHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body and can't be parsed.
-    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) return response({})
+    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) return successResponse({})
     
     try {
         let stripe_event;
@@ -55,7 +53,7 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
                 throw new Error(`Unrecognized webhook event type: ${stripe_event.type}`)
         }
     } catch (err) {
-        return response({ err });
+        return unexpectedErrorResponse(err);
     }
 }
 
@@ -63,7 +61,7 @@ exports.signupHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
     if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) {
         // Note the empty body, no actual response data required
-        return response({});
+        return successResponse({});
     }
     return await api.create(request.body as string);
 }
