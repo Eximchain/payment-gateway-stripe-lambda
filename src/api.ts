@@ -26,7 +26,6 @@ async function apiCreate(body: string) {
         let newUser = await cognito.createUser(email, allowedPlan)
 
         return successResponse({
-            success: true,
             user: newUser,
             stripeId: customer.id,
             subscriptionId: subscription.id
@@ -48,7 +47,6 @@ async function apiCancel(email: string) {
     const cancelledSub = await stripe.cancel(email);
     const cancelledNotification = await sns.publishCancellation(email);
     return successResponse({
-        success: true,
         cancelledSub,
         cancelledNotification
     })
@@ -81,7 +79,6 @@ async function apiUpdateDapps(email: string, body: string) {
     const newUser = await cognito.getUser(email);
 
     return successResponse({
-        success: true,
         updatedSubscription: updatedSub,
         updatedUser: newUser
     })
