@@ -224,45 +224,6 @@ async function getUnpaidInvoiceIfExists(email:string){
 ////                  HELPERS
 ///////////////////////////////////////////////////
 
-function buildSubscriptionItems(plans:StripePlans, currentItems?:SubscriptionItem[]){
-
-  // We're rebuilding the item list for an existing subscription
-  if (currentItems) {
-    const items:SubscriptionUpdateItem[] = [];
-    const currentByPlan = keyBy(currentItems, item => item.plan.id)
-    Object.keys(plans).forEach((planId) => {
-      let newQuantity = plans[planId as StripePlanNames];
-      let currentItem = currentByPlan[planId];
-      if (newQuantity === 0) {
-        if (currentItem) items.push({
-          id : currentItem.id,
-          deleted : true
-        })
-      } else {
-        items.push(currentItem ? {
-          id : currentItem.id,
-          plan : planId,
-          quantity : newQuantity
-        } : {
-          plan : planId,
-          quantity : newQuantity
-        })
-      }
-    })
-    return items;
-  // We're buliding a new subscription item list 
-  } else {
-    const items:SubscriptionCreateItem[] = [];
-    Object.keys(plans).forEach(plan => {
-      let quantity = plans[plan as StripePlanNames];
-      if (plans[plan as StripePlanNames] > 0) {
-        items.push({ plan, quantity })
-      }
-    })
-    return items;
-  }
-}
-
 async function isTokenValid(tokenId:string | undefined) {
   if (typeof tokenId !== 'string') return false;
   try {
