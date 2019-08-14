@@ -22,7 +22,7 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
                 // Note the empty body, no actual response data required
                 return successResponse({});
             default:
-                return userErrorResponse(new Error(`Unrecognized HTTP method: ${method}.`))
+                return userErrorResponse({ message : `Unrecognized HTTP method: ${method}.`}, { errorResponseCode : 405 })
         }
     } catch (err) {
         return unexpectedErrorResponse(err)
@@ -38,7 +38,7 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
         let stripe_event;
         if (request.body == null) throw new Error("Webhook request has no body.");
         if (!request.headers || !request.headers['Stripe-Signature']) {
-            throw new Error("Missing Stripe Signature header.");
+            return userErrorResponse({ message : "Missing Stripe Signature header."})
         } else {
             stripe_event = await Stripe.decodeWebhook(request.body, request.headers['Stripe-Signature']);
         }
@@ -50,7 +50,7 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
             case WebhookEventTypes.trialEnding:
                 return await webhooks.trialEnding(stripe_event)
             default:
-                throw new Error(`Unrecognized webhook event type: ${stripe_event.type}`)
+                return userErrorResponse({ message : `Unrecognized webhook event type: ${stripe_event.type}`})
         }
     } catch (err) {
         return unexpectedErrorResponse(err);
