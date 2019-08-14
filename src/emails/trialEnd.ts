@@ -110,7 +110,7 @@ export function trialEndEmail(managerDNS: string) {
                       align="left"> 
                       Let us know what you think about the DappBot experience, we would like to hear from you! 
                       Please help us with a 
-                      <a href="https://imgflip.com/i/37koyd"
+                      <a href="https://douglas137.typeform.com/to/PNeE5F"
                           style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
                         short survey</a>
                       (less than 5 mins). 
