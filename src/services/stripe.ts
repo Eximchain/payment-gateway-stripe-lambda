@@ -162,16 +162,8 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   if (!subscription){
     throw new Error(`Unable to update subscription for ${email}, no subscription exist.`);
   }
-  if (subscription.status === 'trialing') {
-    if (customer.default_source !== null) {
-      // If they've already added a card but are still trialing,
-      // updating their dapp count immediately ends their trial.
-      await stripe.subscriptions.update(subscription.id, {
-        trial_end : 'now'
-      })
-    } else {
-      throw new UserError("You cannot modify your dapp count while you are still in your free trial.");
-    }
+  if (subscription.status === 'trialing' && customer.default_source === null){
+    throw new UserError("You cannot modify your dapp count without a saved payment method.");
   }
   const currentItems = subscription.items.data.slice();
   const items:SubscriptionUpdateItem[] = [];
@@ -185,18 +177,27 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
         deleted : true
       })
     } else {
-      items.push(currentItem ? {
-        id : currentItem.id,
+      let newItem:SubscriptionUpdateItem = {
         plan : planId,
         quantity : newQuantity
-      } : {
-        plan : planId,
-        quantity : newQuantity
-      })
+      }
+      if (currentItem) newItem.id = currentItem.id;
+      items.push(newItem)
     }
   })
-  return await stripe.subscriptions.update(subscription.id, {
-    items: items
+  return await stripe.subscriptions.update(subscription.id, { items })
+    .then((updatedSubscription)=>{
+      // If they've already added a card but are still trialing,
+      // updating their dapp count immediately ends their trial.
+      // Doing it in this then ensures that the update is complete
+      // before we end their trial and they get invoiced.
+      if (updatedSubscription.status === 'trialing') {
+        return stripe.subscriptions.update(subscription.id, {
+          trial_end: 'now'
+        })
+      } else {
+        return updatedSubscription;
+      }
   })
 }
 
