@@ -1,4 +1,5 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
+import { UserError } from '../validate';
 import Stripe from 'stripe';
 import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
@@ -157,6 +158,9 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   const subscription = await getStripeSubscription(email);
   if (!subscription){
     throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
+  }
+  if (subscription.status === 'trialing') {
+    throw new UserError("You cannot modify your dapp count while you are still in your free trial.");
   }
   const currentItems = subscription.items.data.slice();
   const items:SubscriptionUpdateItem[] = [];

@@ -1,5 +1,17 @@
 import { HTTPMethods } from './responses';
 
+export class UserError {
+  name: string
+  message: string
+  constructor(message:string) {
+    this.name = 'UserError'
+    this.message = message
+  }
+  toString():string { 
+    return this.message 
+  }
+}
+
 function bodyHas(body:Object, propertyNames:string[]){
   return propertyNames.every(name => body.hasOwnProperty(name))
 }

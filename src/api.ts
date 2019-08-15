@@ -1,7 +1,7 @@
 import services from './services';
 import { ValidSubscriptionStates, Customer, Invoice } from './services/stripe';
 const { cognito, stripe, sns } = services;
-import { matchUpdateBody, UpdateUserActions } from './validate'
+import { matchUpdateBody, UpdateUserActions, UserError } from './validate'
 import { successResponse, unexpectedErrorResponse, userErrorResponse } from './responses';
 
 async function apiCreate(body: string) {
@@ -74,14 +74,22 @@ async function apiUpdate(email: string, body: string) {
 async function apiUpdateDapps(email: string, body: string) {
     const { plans } = JSON.parse(body);
     console.log(`Updating dapp counts for ${email}`)
-    const updatedSub = await stripe.updateSubscription(email, plans);
-    const updateDappResult = await cognito.updateDapps(email, plans);
-    const newUser = await cognito.getUser(email);
-
-    return successResponse({
-        updatedSubscription: updatedSub,
-        updatedUser: newUser
-    })
+    try {
+        // Stripe call will throw an error if they are in trial mode,
+        // important that it happens before the Cognito one.
+        const updatedSub = await stripe.updateSubscription(email, plans);
+        const updateDappResult = await cognito.updateDapps(email, plans);
+        const newUser = await cognito.getUser(email);
+        return successResponse({
+            updatedSubscription: updatedSub,
+            updatedUser: newUser
+        })
+    } catch (err) {
+        let msg = { message : err.message };
+        return err instanceof UserError ? 
+            userErrorResponse(msg) :
+            unexpectedErrorResponse(msg);
+    }
 }
 
 interface UpdatePaymentResponseData {
