@@ -88,21 +88,6 @@ async function getStripeData(email:string) {
 ////                 CUSTOMERS
 ///////////////////////////////////////////////////
 
-export async function getStripeCustomerById(customerId:string) {
-  return await stripe.customers.retrieve(customerId, {
-    expand : ['default_source']
-  })
-}
-
-async function updateCustomerPayment(email: string, paymentToken:string){
-  const customer = await getStripeCustomer(email)
-  if(customer === null){
-    throw new Error( `A customer does not exist for email ${email} in stripe`)
-  }
-  return await stripe.customers.update(customer.id, {source:paymentToken})
-
-}
-
 async function getStripeCustomer(email:string) {
   const matchingList = await stripe.customers.list({ email })
 
@@ -118,6 +103,21 @@ async function getStripeCustomer(email:string) {
   return await stripe.customers.retrieve(customerId, {
     expand : ['default_source']
   })
+}
+
+export async function getStripeCustomerById(customerId:string) {
+  return await stripe.customers.retrieve(customerId, {
+    expand : ['default_source']
+  })
+}
+
+async function updateCustomerPayment(email: string, paymentToken:string){
+  const customer = await getStripeCustomer(email)
+  if(customer === null){
+    throw new Error( `A customer does not exist for email ${email} in stripe`)
+  }
+  return await stripe.customers.update(customer.id, {source:paymentToken})
+
 }
 
 ///////////////////////////////////////////////////
@@ -155,12 +155,23 @@ async function cancelStripeSubscription(email:string) {
 }
 
 async function updateStripeSubscription(email:string, newPlans:StripePlans) {
-  const subscription = await getStripeSubscription(email);
+  const { customer, subscription} = await getStripeData(email);
+  if (!customer){
+    throw new Error(`Unable to update subscription for ${email}, no customer exist.`);
+  }
   if (!subscription){
-    throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
+    throw new Error(`Unable to update subscription for ${email}, no subscription exist.`);
   }
   if (subscription.status === 'trialing') {
-    throw new UserError("You cannot modify your dapp count while you are still in your free trial.");
+    if (customer.default_source !== null) {
+      // If they've already added a card but are still trialing,
+      // updating their dapp count immediately ends their trial.
+      await stripe.subscriptions.update(subscription.id, {
+        trial_end : 'now'
+      })
+    } else {
+      throw new UserError("You cannot modify your dapp count while you are still in your free trial.");
+    }
   }
   const currentItems = subscription.items.data.slice();
   const items:SubscriptionUpdateItem[] = [];
@@ -188,7 +199,6 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
     items: items
   })
 }
-
 
 ///////////////////////////////////////////////////
 ////                  INVOICES
