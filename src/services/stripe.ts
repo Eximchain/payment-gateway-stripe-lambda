@@ -1,4 +1,5 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
+import { UserError } from '../validate';
 import Stripe from 'stripe';
 import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
@@ -87,21 +88,6 @@ async function getStripeData(email:string) {
 ////                 CUSTOMERS
 ///////////////////////////////////////////////////
 
-export async function getStripeCustomerById(customerId:string) {
-  return await stripe.customers.retrieve(customerId, {
-    expand : ['default_source']
-  })
-}
-
-async function updateCustomerPayment(email: string, paymentToken:string){
-  const customer = await getStripeCustomer(email)
-  if(customer === null){
-    throw new Error( `A customer does not exist for email ${email} in stripe`)
-  }
-  return await stripe.customers.update(customer.id, {source:paymentToken})
-
-}
-
 async function getStripeCustomer(email:string) {
   const matchingList = await stripe.customers.list({ email })
 
@@ -117,6 +103,21 @@ async function getStripeCustomer(email:string) {
   return await stripe.customers.retrieve(customerId, {
     expand : ['default_source']
   })
+}
+
+export async function getStripeCustomerById(customerId:string) {
+  return await stripe.customers.retrieve(customerId, {
+    expand : ['default_source']
+  })
+}
+
+async function updateCustomerPayment(email: string, paymentToken:string){
+  const customer = await getStripeCustomer(email)
+  if(customer === null){
+    throw new Error( `A customer does not exist for email ${email} in stripe`)
+  }
+  return await stripe.customers.update(customer.id, {source:paymentToken})
+
 }
 
 ///////////////////////////////////////////////////
@@ -154,9 +155,15 @@ async function cancelStripeSubscription(email:string) {
 }
 
 async function updateStripeSubscription(email:string, newPlans:StripePlans) {
-  const subscription = await getStripeSubscription(email);
+  const { customer, subscription} = await getStripeData(email);
+  if (!customer){
+    throw new Error(`Unable to update subscription for ${email}, no customer exist.`);
+  }
   if (!subscription){
-    throw new Error(`Unable to update subscription for email ${email}, no subscriptions exist.`);
+    throw new Error(`Unable to update subscription for ${email}, no subscription exist.`);
+  }
+  if (subscription.status === 'trialing' && customer.default_source === null){
+    throw new UserError("You cannot modify your dapp count without a saved payment method.");
   }
   const currentItems = subscription.items.data.slice();
   const items:SubscriptionUpdateItem[] = [];
@@ -170,21 +177,29 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
         deleted : true
       })
     } else {
-      items.push(currentItem ? {
-        id : currentItem.id,
+      let newItem:SubscriptionUpdateItem = {
         plan : planId,
         quantity : newQuantity
-      } : {
-        plan : planId,
-        quantity : newQuantity
-      })
+      }
+      if (currentItem) newItem.id = currentItem.id;
+      items.push(newItem)
     }
   })
-  return await stripe.subscriptions.update(subscription.id, {
-    items: items
+  return await stripe.subscriptions.update(subscription.id, { items })
+    .then((updatedSubscription)=>{
+      // If they've already added a card but are still trialing,
+      // updating their dapp count immediately ends their trial.
+      // Doing it in this then ensures that the update is complete
+      // before we end their trial and they get invoiced.
+      if (updatedSubscription.status === 'trialing') {
+        return stripe.subscriptions.update(subscription.id, {
+          trial_end: 'now'
+        })
+      } else {
+        return updatedSubscription;
+      }
   })
 }
-
 
 ///////////////////////////////////////////////////
 ////                  INVOICES
