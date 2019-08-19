@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { successResponse } from './responses';
 import { Invoice, WebhookEvent, Subscription, getStripeCustomerById } from './services/stripe';
 import { sendTrialEndEmail } from './services/sendgrid';
@@ -29,8 +30,16 @@ export async function handleSuccessfulPayment(event:WebhookEvent) {
 
 export async function handleTrialEnding(event:WebhookEvent) {
   const subscription = event.data.object as Subscription;
+  const { trial_end, trial_start } = subscription;
   const customer = await getStripeCustomerById(subscription.customer as string);
   const { email } = customer;
+  const endOfTrial = moment((trial_end as number) * 1000)
+  const trialLengthInDays = moment.duration(endOfTrial.diff((trial_start as number) * 1000)).asDays();
+  if (trialLengthInDays > 7) {
+    // Send the email which doesn't include the survey
+  } else {
+    // Send the email which includes the survey
+  }
   let msg = `DappBot notified of ${email}'s trial ending.`
   console.log(msg);
   const emailReceipt = await sendTrialEndEmail(email as string);
