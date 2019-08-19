@@ -106,7 +106,7 @@ async function apiUpdatePayment(email: string, body: string) {
         let responseData: UpdatePaymentResponseData = {
             updatedCustomer: customer
         }
-        const invoice = await stripe.retryLatestUnpaid(email);
+        const invoice = await stripe.retryLatestUnpaid(customer.id);
         if (invoice) {
             responseData.retriedInvoice = invoice;
             console.log("Found a past_due invoice and recharged it with new payment source.");

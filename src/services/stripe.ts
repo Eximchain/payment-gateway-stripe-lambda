@@ -76,12 +76,18 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
 }
 
 async function getStripeData(email:string) {
-  let customer, subscription;
+  let customer, subscription, invoice;
   customer = await getStripeCustomer(email);
   if (customer){
     subscription = await getStripeSubscriptionByCustomerId(customer.id);
+    const failedInvoice = await getUnpaidInvoice(customer.id);
+    if (failedInvoice) {
+      invoice = failedInvoice;
+    } else {
+      invoice = await getUpcomingInvoice(customer.id);
+    }
   }
-  return { customer, subscription };
+  return { customer, subscription, invoice };
 }
 
 ///////////////////////////////////////////////////
@@ -204,24 +210,34 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
 ///////////////////////////////////////////////////
 ////                  INVOICES
 ///////////////////////////////////////////////////
-async function retryLatestUnpaid(email:string){
-  const latestInvoice = await getUnpaidInvoiceIfExists(email);
+
+/**
+ * Given a customerId, uses getUnpaidInvoice to
+ * attempt payment on a failed invoice, returning
+ * the invoice after the updating.  If there is
+ * no unpaid invoice, returns null.
+ * 
+ * @param customerId 
+ */
+async function retryLatestUnpaid(customerId:string){
+  const latestInvoice = await getUnpaidInvoice(customerId);
   if (latestInvoice){
-    return await retryInvoiceById(latestInvoice.id);
+    return await stripe.invoices.pay(latestInvoice.id);
   } else {
     return null;
   }
 }
 
-async function retryInvoiceById(invoiceId:string){
-  return await stripe.invoices.pay(invoiceId);
-}
-
-async function getUnpaidInvoiceIfExists(email:string){
-  const customer = await getStripeCustomer(email);
-  if (!customer) return null;
+/**
+ * Given a customerId, returns their unpaid invoice.
+ * If they do not have an invoice which has been
+ * attempted but not paid, it returns null.
+ * 
+ * @param customerId 
+ */
+async function getUnpaidInvoice(customerId:string){
   const invoices = await stripe.invoices.list({
-    customer : customer.id
+    customer : customerId
   });
   if (invoices.data.length === 0) {
     return null;
@@ -233,6 +249,24 @@ async function getUnpaidInvoiceIfExists(email:string){
     console.log('Latest invoice does not hit requirements of attempted but not paid.');
     return null;
   }
+}
+
+/**
+ * Given a customerId, return their upcoming invoice.
+ * Automatically includes up to 100 of the underlying
+ * line items.
+ * 
+ * TODO: What does this do when they have been moved
+ * to not making anymore invoices?
+ * 
+ * @param customerId 
+ */
+async function getUpcomingInvoice(customerId:string){
+  const customer = await getStripeCustomerById(customerId);
+  const upcomingInvoice = await stripe.invoices.retrieveUpcoming(customer.id);
+  const upcomingLines = await stripe.invoices.listUpcomingLineItems({ limit : 100 });
+  upcomingInvoice.lines.data = upcomingLines.data;
+  return upcomingInvoice;
 }
 
 ///////////////////////////////////////////////////
