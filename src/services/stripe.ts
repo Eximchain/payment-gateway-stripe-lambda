@@ -1,7 +1,6 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
 import { UserError } from '../validate';
 import Stripe from 'stripe';
-import fetch from 'node-fetch';
 import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
 

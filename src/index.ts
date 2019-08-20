@@ -25,7 +25,7 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
                 return userErrorResponse({ message : `Unrecognized HTTP method: ${method}.`}, { errorResponseCode : 405 })
         }
     } catch (err) {
-        console.log('err coming out of mgmtHandler: ',err);
+        console.log(`Unexpected ${method} Error: `,err);
         return unexpectedErrorResponse(err)
     }
 };
@@ -35,8 +35,8 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
     // which have no body and can't be parsed.
     if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) return successResponse({})
     
+    let stripe_event;
     try {
-        let stripe_event;
         if (request.body == null) throw new Error("Webhook request has no body.");
         if (!request.headers || !request.headers['Stripe-Signature']) {
             return userErrorResponse({ message : "Missing Stripe Signature header."})
@@ -54,6 +54,8 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
                 return userErrorResponse({ message : `Unrecognized webhook event type: ${stripe_event.type}`})
         }
     } catch (err) {
+        console.log(`Unexpected webhook error: `,err);
+        console.log('Source event: ',stripe_event)
         return unexpectedErrorResponse(err);
     }
 }
