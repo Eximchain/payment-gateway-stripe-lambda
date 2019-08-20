@@ -31,7 +31,8 @@ async function apiCreate(body: string) {
             subscriptionId: subscription.id
         })
     } catch (err) {
-        return unexpectedErrorResponse({ message: err.message })
+        console.log('Unexpected error on apiCreate: ',err);
+        return unexpectedErrorResponse({ message: err.message || err.toString() })
     }
 }
 
@@ -66,7 +67,8 @@ async function apiUpdate(email: string, body: string) {
                 })
         }
     } catch (err) {
-        return unexpectedErrorResponse(err)
+        console.log('Unexpected error on apiUpdate: ',err);
+        return unexpectedErrorResponse({ message : err.message || err.toString()})
     }
 }
 
@@ -85,7 +87,8 @@ async function apiUpdateDapps(email: string, body: string) {
             updatedUser: newUser
         })
     } catch (err) {
-        let msg = { message : err.message };
+        let msg = { message : err.message || err.toString() };
+        console.log('Unexpected error updating dapps: ',err);
         return err instanceof UserError ? 
             userErrorResponse(msg) :
             unexpectedErrorResponse(msg);

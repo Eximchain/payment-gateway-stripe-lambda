@@ -26,7 +26,7 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
         }
     } catch (err) {
         console.log(`Unexpected ${method} Error: `,err);
-        return unexpectedErrorResponse(err)
+        return unexpectedErrorResponse({ message : err.message || err.toString() })
     }
 };
 
