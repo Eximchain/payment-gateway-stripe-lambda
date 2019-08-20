@@ -264,8 +264,16 @@ async function getUnpaidInvoice(customerId:string){
 async function getUpcomingInvoice(customerId:string){
   const customer = await getStripeCustomerById(customerId);
   const upcomingInvoice = await stripe.invoices.retrieveUpcoming(customer.id);
-  const upcomingLines = await stripe.invoices.listUpcomingLineItems({ limit : 100 });
-  upcomingInvoice.lines.data = upcomingLines.data;
+  console.log('getUpcomingInvoice got the following: ',upcomingInvoice);
+  try {
+    // const upcomingLines = await stripe.invoices.listUpcomingLineItems(customerId, { limit: 100 })
+    const upcomingLines = await stripe.invoices.listUpcomingLineItems({ limit : 100 });
+    console.log('upcomingLines got: ', upcomingLines);
+    upcomingInvoice.lines.data = upcomingLines.data;
+  } catch (err) {
+    console.log('Got the following error fetching line items: ',err);
+  }
+  console.log('returning: ',upcomingInvoice);
   return upcomingInvoice;
 }
 
