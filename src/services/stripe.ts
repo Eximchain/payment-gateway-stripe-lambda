@@ -1,6 +1,7 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
 import { UserError } from '../validate';
 import Stripe from 'stripe';
+import fetch from 'node-fetch';
 import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
 
@@ -262,18 +263,12 @@ async function getUnpaidInvoice(customerId:string){
  * @param customerId 
  */
 async function getUpcomingInvoice(customerId:string){
-  const customer = await getStripeCustomerById(customerId);
-  const upcomingInvoice = await stripe.invoices.retrieveUpcoming(customer.id);
-  console.log('getUpcomingInvoice got the following: ',upcomingInvoice);
-  try {
-    // const upcomingLines = await stripe.invoices.listUpcomingLineItems(customerId, { limit: 100 })
-    const upcomingLines = await stripe.invoices.listUpcomingLineItems({ limit : 100 });
-    console.log('upcomingLines got: ', upcomingLines);
-    upcomingInvoice.lines.data = upcomingLines.data;
-  } catch (err) {
-    console.log('Got the following error fetching line items: ',err);
-  }
-  console.log('returning: ',upcomingInvoice);
+  const upcomingInvoice = await stripe.invoices.retrieveUpcoming(customerId);
+  const fullLineItems = await stripe.invoices.listUpcomingLineItems({
+    customer : customerId,
+    limit : 100
+  });
+  upcomingInvoice.lines.data = fullLineItems.data;
   return upcomingInvoice;
 }
 

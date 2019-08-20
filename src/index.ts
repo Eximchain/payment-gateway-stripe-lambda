@@ -25,6 +25,7 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
                 return userErrorResponse({ message : `Unrecognized HTTP method: ${method}.`}, { errorResponseCode : 405 })
         }
     } catch (err) {
+        console.log('err coming out of mgmtHandler: ',err);
         return unexpectedErrorResponse(err)
     }
 };
