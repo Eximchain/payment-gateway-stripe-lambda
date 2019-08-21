@@ -1,8 +1,11 @@
 import services from './services';
 import { ValidSubscriptionStates, Customer, Invoice } from './services/stripe';
 const { cognito, stripe, sns } = services;
+import { eximchainAccountsOnly } from './env';
 import { matchUpdateBody, UpdateUserActions, UserError } from './validate'
 import { successResponse, unexpectedErrorResponse, userErrorResponse } from './responses';
+
+const eximchainEmailSuffix = '@eximchain.com';
 
 async function apiCreate(body: string) {
     const { email, plans, name, coupon, token } = JSON.parse(body)
@@ -10,6 +13,9 @@ async function apiCreate(body: string) {
     console.log(`Creating customer, subscription, & Cognito acct for ${email}`)
 
     try {
+        if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
+            return userErrorResponse({ message: `Email ${email} is not permitted to create a staging account` });
+        }
         // If they haven't provided a payment method, replace
         // plans with a one-standard-dapp subscription.
         const validToken = await stripe.isTokenValid(token);
