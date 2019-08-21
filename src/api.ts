@@ -14,7 +14,7 @@ async function apiCreate(body: string) {
 
     try {
         if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
-            throw Error(`Email ${email} is not permitted to create a staging account`);
+            return userErrorResponse({ message: `Email ${email} is not permitted to create a staging account` });
         }
         // If they haven't provided a payment method, replace
         // plans with a one-standard-dapp subscription.
