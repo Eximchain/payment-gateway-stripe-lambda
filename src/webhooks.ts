@@ -1,6 +1,6 @@
 import { successResponse } from './responses';
 import { Invoice, WebhookEvent, Subscription, getStripeCustomerById } from './services/stripe';
-import { sendTrialEndEmail, sendExtendedTrailEndEmail } from './services/sendgrid';
+import { sendTrialEndEmail } from './services/sendgrid';
 import { publishPaymentFailure, publishPaymentSuccess } from './services/sns';
 import { Webhook } from 'aws-sdk/clients/codebuild';
 
@@ -34,7 +34,7 @@ export async function handleTrialEnding(event:WebhookEvent) {
   const { email } = customer;
   let msg = `DappBot notified of ${email}'s trial ending.`
   console.log(msg);
-  const emailReceipt = await sendTrialEndEmail(email as string);
+  const emailReceipt = await sendTrialEndEmail(email as string, false);
   console.log('Email receipt from Sendgrid: ',emailReceipt);
   return successResponse({ message :  msg })
 }
@@ -44,7 +44,7 @@ export async function handleExtendedTrialEnding(event:WebhookEvent) {
   const customer = await getStripeCustomerById(subscription.customer as string);
   const { email } = customer
   console.log(`Dappbot notified of ${email}'s extended trial is ending.`)
-  const emailReceipt = await sendExtendedTrailEndEmail(email as string)
+  const emailReceipt = await sendTrialEndEmail(email as string, true)
 
 }
 
