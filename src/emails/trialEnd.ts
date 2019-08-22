@@ -7,7 +7,9 @@
 // template in this function makes it easy to only
 // provide variables once we're actually sending
 // an email with the template.
-export function trialEndEmail(managerDNS: string) {
+export function trialEndEmail(managerDNS?: string) {
+
+
   return `
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
@@ -179,4 +181,8 @@ export function trialEndEmail(managerDNS: string) {
 
 </html>
   `
+}
+
+export function extendedTrialEndEmail(){
+  return ``
 }
