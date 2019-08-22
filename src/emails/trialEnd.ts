@@ -91,7 +91,7 @@ export function trialEndEmail(managerDNS: string) {
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
                       align="left">
                       Your DappBot trial is almost over.   
-                      I hope you’ve had a chance to create and deploy your blockchain application with DappBot. 
+                      We hope you’ve had a chance to create and deploy your blockchain application with DappBot. 
                       Here are some of DappBot’s powerful features that you might have missed:
                     </p>
                     <ul style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;">
