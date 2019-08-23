@@ -2,7 +2,6 @@ import { successResponse } from './responses';
 import { Invoice, WebhookEvent, Subscription, getStripeCustomerById } from './services/stripe';
 import { sendTrialEndEmail } from './services/sendgrid';
 import { publishPaymentFailure, publishPaymentSuccess } from './services/sns';
-import { Webhook } from 'aws-sdk/clients/codebuild';
 import { extendedTrialEndEmail } from './emails';
 
 export async function handleFailedPayment(event:WebhookEvent) {
@@ -34,13 +33,13 @@ export async function handleTrialEnding(event:WebhookEvent) {
   const customer = await getStripeCustomerById(subscription.customer as string);
   const { email } = customer;
   let msg = `DappBot notified of ${email}'s trial ending.`
+  const TWO_WEEKS = 60 * 60 * 24 * 14
   console.log(msg);
   //TODO: add the logic for determing whether the customer has an extended trial here and set it to isExtendedTrialEnd
   let isExtendedTrialEnd = false
 
-  if(subscription.trial_start && subscription.trial_end)
-  {
-    if(subscription.trial_end - subscription.trial_start >= 1209600){
+  if(subscription.trial_start && subscription.trial_end) {
+    if(subscription.trial_end - subscription.trial_start >= TWO_WEEKS){
       isExtendedTrialEnd = true
     }
   }
