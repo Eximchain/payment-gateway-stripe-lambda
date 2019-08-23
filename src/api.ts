@@ -20,21 +20,43 @@ async function apiCreate(body: string) {
         // plans with a one-standard-dapp subscription.
         const validToken = await stripe.isTokenValid(token);
         const allowedPlan = validToken ? plans : { standard: 1 };
-        const { customer, subscription } = await stripe.create({
-            name, email, token, coupon,
-            plans: allowedPlan
-        })
 
-        if (!ValidSubscriptionStates.includes(subscription.status)) {
-            throw Error(`Subscription failed because subscription status is ${subscription.status}`)
+        // TODO: Check for an existing account, and if so, 
+        // just return the associated IDs.
+        const stripeData = await stripe.read(email);
+        let stripeId = '';
+        let subscriptionId = '';
+        if (stripeData.customer) {
+            const { customer, subscription } = stripeData;
+            stripeId = customer.id;
+            if (subscription) {
+                subscriptionId = subscription.id;
+
+                // TODO: Add typing & safety checks to verify this
+                // will actually work!
+                const updatedSub = await stripe.updateSubscription(email, allowedPlan);            
+            } else {
+                // TODO: We need to make them a subscription!
+            }
+        } else {
+            const { customer, subscription } = await stripe.create({
+                name, email, token, coupon,
+                plans: allowedPlan
+            })
+    
+            if (!ValidSubscriptionStates.includes(subscription.status)) {
+                throw Error(`Subscription failed because subscription status is ${subscription.status}`)
+            }
+
+            stripeId = customer.id;
+            subscriptionId = subscription.id;
         }
 
         let newUser = await cognito.createUser(email, allowedPlan)
 
         return successResponse({
             user: newUser,
-            stripeId: customer.id,
-            subscriptionId: subscription.id
+            stripeId, subscriptionId
         })
     } catch (err) {
         console.log('Unexpected error on apiCreate: ',err);

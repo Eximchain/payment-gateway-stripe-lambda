@@ -1,3 +1,4 @@
+import { XOR } from 'ts-xor';
 import { stripeKey, stripeWebhookSecret } from '../env';
 import { UserError } from '../validate';
 import Stripe from 'stripe';
@@ -76,7 +77,11 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
 }
 
 async function getStripeData(email:string) {
-  let customer, subscription, invoice;
+  let [customer, subscription, invoice] = [
+    null as XOR<Customer, null>, 
+    null as XOR<Subscription, null>, 
+    null as XOR<Invoice, null>
+  ];
   customer = await getStripeCustomer(email);
   if (customer){
     subscription = await getStripeSubscriptionByCustomerId(customer.id);
