@@ -37,6 +37,13 @@ export async function handleTrialEnding(event:WebhookEvent) {
   console.log(msg);
   //TODO: add the logic for determing whether the customer has an extended trial here and set it to isExtendedTrialEnd
   let isExtendedTrialEnd = false
+
+  if(subscription.trial_start && subscription.trial_end)
+  {
+    if(subscription.trial_end - subscription.trial_start >= 1209600){
+      isExtendedTrialEnd = true
+    }
+  }
   const emailReceipt = await sendTrialEndEmail(email as string, isExtendedTrialEnd);
 
   console.log('Email receipt from Sendgrid: ',emailReceipt);
