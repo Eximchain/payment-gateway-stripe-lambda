@@ -1,39 +1,51 @@
 'use strict';
 import api from './api';
-import { HTTPMethods, unexpectedErrorResponse, successResponse, userErrorResponse } from './responses';
-import { isHTTPMethod } from './validate';
+import { Read, UpdateCard, UpdatePlanCount, SignUp, Cancel } from '@eximchain/dappbot-types/spec/methods/payment';
+import { userErrorResponse, successResponse, unexpectedErrorResponse, HttpMethods } from '@eximchain/dappbot-types/spec/responses';
+import { isHTTPMethod, UserError } from './validate';
 import { APIGatewayEvent } from './gateway-event-type';
 import Stripe, { WebhookEventTypes } from './services/stripe';
 import webhooks from './webhooks';
 
+function handleErrResponse<Err extends Error>(err:Err) {
+    console.log('Error: ',err);
+    let msg = { ...err, message : err.message || err.toString() };
+    return err instanceof UserError ? 
+        userErrorResponse(msg) :
+        unexpectedErrorResponse(msg);
+}
+
 exports.managementHandler = async (request: APIGatewayEvent) => {
-    let method = request.httpMethod.toUpperCase();
+    let method = request.httpMethod.toUpperCase() as HttpMethods;
     let callerEmail = request.requestContext.authorizer.claims.email;
+    let body = JSON.parse(request.body as string);
     try {
         switch (method) {
-            case HTTPMethods.GET:
-                return await api.read(callerEmail);
-            case HTTPMethods.PUT:
-                return await api.update(callerEmail, request.body as string);
-            case HTTPMethods.DELETE:
-                return await api.cancel(callerEmail);
-            case HTTPMethods.OPTIONS:
+            case 'GET':
+                let readResult:Read.Result = await api.read(callerEmail);
+                return successResponse(readResult);
+            case 'PUT':
+                let updateResult:UpdateCard.Result | UpdatePlanCount.Result = await api.update(callerEmail, body);
+                return successResponse(updateResult);
+            case 'DELETE':
+                let cancelResult:Cancel.Result = await api.cancel(callerEmail);
+                return successResponse(cancelResult);
+            case 'OPTIONS':
                 // Auto-return success for CORS pre-flight OPTIONS requests
                 // Note the empty body, no actual response data required
-                return successResponse({});
+                return successResponse(null);
             default:
                 return userErrorResponse({ message : `Unrecognized HTTP method: ${method}.`}, { errorResponseCode : 405 })
         }
     } catch (err) {
-        console.log(`Unexpected ${method} Error: `,err);
-        return unexpectedErrorResponse({ message : err.message || err.toString() })
+        return handleErrResponse(err);
     }
 };
 
 exports.webhookHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body and can't be parsed.
-    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) return successResponse({})
+    if (isHTTPMethod(request.httpMethod, 'OPTIONS')) return successResponse({})
     
     let stripe_event;
     try {
@@ -54,17 +66,21 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
                 return userErrorResponse({ message : `Unrecognized webhook event type: ${stripe_event.type}`})
         }
     } catch (err) {
-        console.log(`Unexpected webhook error: `,err);
         console.log('Source event: ',stripe_event)
-        return unexpectedErrorResponse(err);
+        return handleErrResponse(err);
     }
 }
 
 exports.signupHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
-    if (isHTTPMethod(request.httpMethod, HTTPMethods.OPTIONS)) {
+    if (isHTTPMethod(request.httpMethod, 'OPTIONS')) {
         // Note the empty body, no actual response data required
         return successResponse({});
     }
-    return await api.create(request.body as string);
+    try {
+        const result:SignUp.Result = await api.create(request.body as string);
+        return successResponse(result);
+    } catch (err) {
+        return handleErrResponse(err);
+    }
 }
