@@ -1,5 +1,3 @@
-import { HttpMethods } from '@eximchain/dappbot-types/spec/responses';
-
 export class UserError {
   name: string
   message: string
@@ -10,8 +8,4 @@ export class UserError {
   toString():string { 
     return this.message 
   }
-}
-
-export function isHTTPMethod(method:string, HTTPMethod:HttpMethods){
-  return method.toUpperCase() === HTTPMethod;
 }

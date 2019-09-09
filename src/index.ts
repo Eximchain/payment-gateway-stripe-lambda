@@ -1,8 +1,8 @@
 'use strict';
 import api from './api';
 import { Read, UpdateCard, UpdatePlanCount, SignUp, Cancel } from '@eximchain/dappbot-types/spec/methods/payment';
-import { userErrorResponse, successResponse, unexpectedErrorResponse, HttpMethods } from '@eximchain/dappbot-types/spec/responses';
-import { isHTTPMethod, UserError } from './validate';
+import { userErrorResponse, successResponse, unexpectedErrorResponse, HttpMethods, isHttpMethod } from '@eximchain/dappbot-types/spec/responses';
+import { UserError } from './validate';
 import { APIGatewayEvent } from './gateway-event-type';
 import Stripe, { WebhookEventTypes } from './services/stripe';
 import webhooks from './webhooks';
@@ -16,7 +16,7 @@ function handleErrResponse<Err extends Error>(err:Err) {
 }
 
 exports.managementHandler = async (request: APIGatewayEvent) => {
-    let method = request.httpMethod.toUpperCase() as HttpMethods;
+    let method = request.httpMethod.toUpperCase() as HttpMethods.ANY;
     let callerEmail = request.requestContext.authorizer.claims.email;
     let body = JSON.parse(request.body as string);
     try {
@@ -45,7 +45,8 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
 exports.webhookHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests,
     // which have no body and can't be parsed.
-    if (isHTTPMethod(request.httpMethod, 'OPTIONS')) return successResponse({})
+    let method = request.httpMethod.toUpperCase() as HttpMethods.ANY;
+    if (method === 'OPTIONS') return successResponse({})
     
     let stripe_event;
     try {
@@ -73,7 +74,8 @@ exports.webhookHandler = async (request: APIGatewayEvent) => {
 
 exports.signupHandler = async (request: APIGatewayEvent) => {
     // Auto-return success for CORS pre-flight OPTIONS requests
-    if (isHTTPMethod(request.httpMethod, 'OPTIONS')) {
+    const method = request.httpMethod.toUpperCase() as HttpMethods.ANY;
+    if (method === 'OPTIONS') {
         // Note the empty body, no actual response data required
         return successResponse({});
     }

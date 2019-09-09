@@ -2,7 +2,7 @@ import { AWS, cognitoUserPoolId } from '../env';
 import { PaymentStatus } from './sns';
 import { CognitoIdentityServiceProvider as CognitoTypes } from 'aws-sdk';
 import { XOR } from 'ts-xor';
-import { UserData, PaymentProvider, emptyUserAttributes } from '@eximchain/dappbot-types/spec/user';
+import { UserData, PaymentProvider, newUserAttributes } from '@eximchain/dappbot-types/spec/user';
 import { StripePlans } from '@eximchain/dappbot-types/spec/methods/payment';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
@@ -17,7 +17,7 @@ function formatUser(user:XOR<CognitoTypes.AdminGetUserResponse, CognitoTypes.Use
         UserAttributes : Attributes.reduce((attrObj, attr) => {
             attrObj[attr.Name] = attr.Value || '';
             return attrObj
-        }, emptyUserAttributes()),
+        }, newUserAttributes()),
         PreferredMfaSetting, UserMFASettingList, MFAOptions
     }
 }
