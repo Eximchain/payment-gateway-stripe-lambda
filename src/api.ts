@@ -19,16 +19,14 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     }
     // If they haven't provided a payment method, replace
     // plans with a one-standard-dapp subscription.
-    let allowedPlan = plans;
     const createArgs:SignUp.Args = {
-        name, email, coupon,
-        plans: allowedPlan
+        name, email, coupon, plans
     }
     const validToken = await stripe.isTokenValid(token);
     if (validToken && typeof token === 'string') {
         createArgs.token = token;
     } else {
-        allowedPlan = Payment.trialStripePlan();
+        createArgs.plans = Payment.trialStripePlan();
     }
     
     const { customer, subscription } = await stripe.create(createArgs)
@@ -37,7 +35,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
         throw new Error(`Subscription failed because subscription status is ${subscription.status}`)
     }
 
-    let newUser = await cognito.createUser(email, allowedPlan)
+    let newUser = await cognito.createUser(email, createArgs.plans)
 
     return {
         user: newUser,
