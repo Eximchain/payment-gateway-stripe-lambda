@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf .build/* ./payment-gateway-stripe-lambda.zip",
-    "build": "sh ./lambda-build.sh"
+    "build": "sh ./lambda-build.sh payment-gateway-stripe-lambda.zip"
   },
   "repository": {
     "type": "git",
