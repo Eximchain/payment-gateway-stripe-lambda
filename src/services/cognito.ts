@@ -97,9 +97,6 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlans) 
     return formatUser(createResult.User)
 }
 
-
-
-
 export default {
     createUser: promiseAdminCreateUser,
     updateDapps: promiseUpdateDapps,
