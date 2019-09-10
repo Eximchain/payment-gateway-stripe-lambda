@@ -1,37 +1,13 @@
 import { AWS, cognitoUserPoolId } from '../env';
-import { StripePlans, StripePlanNames } from './stripe';
 import { PaymentStatus } from './sns';
 import { CognitoIdentityServiceProvider as CognitoTypes } from 'aws-sdk';
 import { XOR } from 'ts-xor';
+import { UserData, PaymentProvider, newUserAttributes } from '@eximchain/dappbot-types/spec/user';
+import { StripePlans } from '@eximchain/dappbot-types/spec/methods/payment';
 const cognito = new AWS.CognitoIdentityServiceProvider({ apiVersion: '2016-04-18' });
 
-export enum PaymentProvider {
-    STRIPE = "STRIPE",
-    ADMIN = "ADMIN"
-}
-
-export type AttributeMapType = { [Name: string]: CognitoTypes.AttributeValueType }
-
-export interface DappBotUser {
-    Username: string
-    Email: string
-    UserAttributes: AttributeMapType
-    /**
-     * Specifies the options for MFA (e.g., email or phone number).
-     */
-    MFAOptions?: CognitoTypes.MFAOptionListType;
-    /**
-     * The user's preferred MFA setting.
-     */
-    PreferredMfaSetting?: string;
-    /**
-     * The list of the user's MFA settings.
-     */
-    UserMFASettingList?: CognitoTypes.UserMFASettingListType;
-}
-
-function formatUser(user:XOR<CognitoTypes.AdminGetUserResponse, CognitoTypes.UserType> | undefined){
-    if (!user) return false;
+function formatUser(user:XOR<CognitoTypes.AdminGetUserResponse, CognitoTypes.UserType> | undefined):UserData | null{
+    if (!user) return null;
     let Attributes = user.Attributes || user.UserAttributes || [];
     const { PreferredMfaSetting, UserMFASettingList, MFAOptions } = user;
     const emailAttr = Attributes.find(({ Name }) => Name === 'email') as CognitoTypes.AttributeType;
@@ -41,9 +17,9 @@ function formatUser(user:XOR<CognitoTypes.AdminGetUserResponse, CognitoTypes.Use
         UserAttributes : Attributes.reduce((attrObj, attr) => {
             attrObj[attr.Name] = attr.Value || '';
             return attrObj
-        }, {} as AttributeMapType),
+        }, newUserAttributes()),
         PreferredMfaSetting, UserMFASettingList, MFAOptions
-    } as DappBotUser
+    }
 }
 
 async function promiseAdminGetUser(cognitoUsername: string) {
@@ -55,7 +31,7 @@ async function promiseAdminGetUser(cognitoUsername: string) {
     return formatUser(user);
 }
 
-function numDapps(plans: StripePlans, typeOfPlan: StripePlanNames) {
+function numPlanAttribute(plans: StripePlans, typeOfPlan: keyof StripePlans) {
     let planName = `custom:${typeOfPlan}_limit`
     return {
         Name: planName,
@@ -66,9 +42,9 @@ function numDapps(plans: StripePlans, typeOfPlan: StripePlanNames) {
 export async function promiseUpdateDapps(email: string, plans: StripePlans) {
     let params = {
         "UserAttributes": [
-            numDapps(plans, "standard"),
-            numDapps(plans, "enterprise"),
-            numDapps(plans, "professional")
+            numPlanAttribute(plans, "standard"),
+            numPlanAttribute(plans, "enterprise"),
+            numPlanAttribute(plans, "professional")
         ],
         "Username": email,
         "UserPoolId": cognitoUserPoolId
@@ -103,9 +79,9 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlans) 
                 Name: 'email_verified',
                 Value: 'true'
             },
-            numDapps(plans, "standard"),
-            numDapps(plans, "enterprise"),
-            numDapps(plans, "professional"),
+            numPlanAttribute(plans, "standard"),
+            numPlanAttribute(plans, "enterprise"),
+            numPlanAttribute(plans, "professional"),
             {
                 Name: 'custom:payment_status',
                 Value: PaymentStatus.ACTIVE
@@ -120,9 +96,6 @@ export async function promiseAdminCreateUser(email: string, plans: StripePlans) 
     const createResult = await cognito.adminCreateUser(params).promise();
     return formatUser(createResult.User)
 }
-
-
-
 
 export default {
     createUser: promiseAdminCreateUser,

@@ -1,129 +1,103 @@
 import services from './services';
-import { ValidSubscriptionStates, Customer, Invoice } from './services/stripe';
 const { cognito, stripe, sns } = services;
 import { eximchainAccountsOnly } from './env';
-import { matchUpdateBody, UpdateUserActions, UserError } from './validate'
-import { successResponse, unexpectedErrorResponse, userErrorResponse } from './responses';
+import { UserError } from './validate'
+import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel } from '@eximchain/dappbot-types/spec/methods/payment';
 
 const eximchainEmailSuffix = '@eximchain.com';
 
-async function apiCreate(body: string) {
-    const { email, plans, name, coupon, token } = JSON.parse(body)
+async function apiCreate(body: string):Promise<SignUp.Result> {
+    const args = JSON.parse(body);
+    if (!SignUp.isArgs(args)) {
+        throw new UserError(`Body was missing some required arguments for signup.`);
+    }
+    const { email, plans, name, coupon, token } = args;
 
     console.log(`Creating customer, subscription, & Cognito acct for ${email}`)
+    if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
+        throw new UserError(`Email ${email} is not permitted to create a staging account`);
+    }
+    // If they haven't provided a payment method, replace
+    // plans with a one-standard-dapp subscription.
+    const createArgs:SignUp.Args = {
+        name, email, coupon, plans
+    }
+    const validToken = await stripe.isTokenValid(token);
+    if (validToken && typeof token === 'string') {
+        createArgs.token = token;
+    } else {
+        createArgs.plans = Payment.trialStripePlan();
+    }
+    
+    const { customer, subscription } = await stripe.create(createArgs)
 
-    try {
-        if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
-            return userErrorResponse({ message: `Email ${email} is not permitted to create a staging account` });
-        }
-        // If they haven't provided a payment method, replace
-        // plans with a one-standard-dapp subscription.
-        const validToken = await stripe.isTokenValid(token);
-        const allowedPlan = validToken ? plans : { standard: 1 };
-        const { customer, subscription } = await stripe.create({
-            name, email, token, coupon,
-            plans: allowedPlan
-        })
+    if (!Payment.StripeTypes.ValidSubscriptionStates.includes(subscription.status)) {
+        throw new Error(`Subscription failed because subscription status is ${subscription.status}`)
+    }
 
-        if (!ValidSubscriptionStates.includes(subscription.status)) {
-            throw Error(`Subscription failed because subscription status is ${subscription.status}`)
-        }
+    let newUser = await cognito.createUser(email, createArgs.plans)
 
-        let newUser = await cognito.createUser(email, allowedPlan)
-
-        return successResponse({
-            user: newUser,
-            stripeId: customer.id,
-            subscriptionId: subscription.id
-        })
-    } catch (err) {
-        console.log('Unexpected error on apiCreate: ',err);
-        return unexpectedErrorResponse({ message: err.message || err.toString() })
+    return {
+        user: newUser,
+        stripeId: customer.id,
+        subscriptionId: subscription.id
     }
 }
 
-async function apiRead(email: string) {
+async function apiRead(email: string):Promise<Read.Result> {
     console.log(`Reading user data for ${email}`);
     const user = await cognito.getUser(email);
-    const stripeData = user ? await stripe.read(email) : {};
-    return successResponse({ user, ...stripeData })
+    const stripeData = await stripe.read(email);
+    return { user, ...stripeData }
 }
 
-async function apiCancel(email: string) {
+async function apiCancel(email: string):Promise<Cancel.Result> {
     console.log(`Cancelling ${email}'s subscription`);
     const cancelledSub = await stripe.cancel(email);
-    const cancelledNotification = await sns.publishCancellation(email);
-    return successResponse({
-        cancelledSub,
-        cancelledNotification
-    })
+    await sns.publishCancellation(email);
+    return {
+        cancelledSub
+    }
 }
 
-async function apiUpdate(email: string, body: string) {
-    try {
-        switch (matchUpdateBody(body)) {
-            case UpdateUserActions.UpdatePlan:
-                return await apiUpdateDapps(email, body)
-            case UpdateUserActions.UpdatePayment:
-                return await apiUpdatePayment(email, body)
-
-            default:
-                return userErrorResponse({
-                    message: "PUT body did not match shape for updating dapp allotments or payment source."
-                })
-        }
-    } catch (err) {
-        console.log('Unexpected error on apiUpdate: ',err);
-        return unexpectedErrorResponse({ message : err.message || err.toString()})
+async function apiUpdate(email: string, args: any):Promise<UpdateCard.Result | UpdatePlanCount.Result> {
+    if (Payment.UpdateCard.isArgs(args)) {
+        return await apiUpdatePayment(email, args);
+    } else if (Payment.UpdatePlanCount.isArgs(args)) {
+        return await apiUpdateDapps(email, args);
+    } else {
+        throw new UserError("Body did not match shape for updating dapp allotments or payment source.")
     }
 }
 
 
-async function apiUpdateDapps(email: string, body: string) {
-    const { plans } = JSON.parse(body);
+async function apiUpdateDapps(email: string, { plans }:UpdatePlanCount.Args):Promise<UpdatePlanCount.Result> {
     console.log(`Updating dapp counts for ${email}`)
-    try {
-        // Stripe call will throw an error if they are in trial mode,
-        // important that it happens before the Cognito one.
-        const updatedSub = await stripe.updateSubscription(email, plans);
-        const updateDappResult = await cognito.updateDapps(email, plans);
-        const newUser = await cognito.getUser(email);
-        return successResponse({
-            updatedSubscription: updatedSub,
-            updatedUser: newUser
-        })
-    } catch (err) {
-        let msg = { message : err.message || err.toString() };
-        console.log('Unexpected error updating dapps: ',err);
-        return err instanceof UserError ? 
-            userErrorResponse(msg) :
-            unexpectedErrorResponse(msg);
+    // Stripe call will throw an error if they are in trial mode,
+    // important that it happens before the Cognito one.
+    const updatedSub = await stripe.updateSubscription(email, plans);
+    const updateDappResult = await cognito.updateDapps(email, plans);
+    const newUser = await cognito.getUser(email);
+    return {
+        updatedSubscription: updatedSub,
+        updatedUser: newUser
     }
 }
 
-interface UpdatePaymentResponseData {
-    updatedCustomer: Customer
-    retriedInvoice?: Invoice
-}
-
-async function apiUpdatePayment(email: string, body: string) {
-    const { token } = JSON.parse(body);
+async function apiUpdatePayment(email: string, { token }:UpdateCard.Args):Promise<Payment.UpdateCard.Result> {
     console.log(`Updating payment source for ${email}`)
     const validToken = await stripe.isTokenValid(token);
-    if (validToken) {
-        const customer = await stripe.updatePayment(email, token)
-        let responseData: UpdatePaymentResponseData = {
-            updatedCustomer: customer
-        }
-        const invoice = await stripe.retryLatestUnpaid(customer.id);
-        if (invoice) {
-            responseData.retriedInvoice = invoice;
-            console.log("Found a past_due invoice and recharged it with new payment source.");
-        }
-        return successResponse(responseData);
-    } else {
-        return userErrorResponse({ message: 'Provided Stripe token was not valid.' })
+    if (!validToken) throw new UserError('Provided Stripe token was not valid.');
+    const customer = await stripe.updatePayment(email, token)
+    let responseData:Payment.UpdateCard.Result = {
+        updatedCustomer: customer
     }
+    const invoice = await stripe.retryLatestUnpaid(customer.id);
+    if (invoice) {
+        responseData.retriedInvoice = invoice;
+        console.log("Found a past_due invoice and recharged it with new payment source.");
+    }
+    return responseData;
 }
 
 export default {

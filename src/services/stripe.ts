@@ -1,57 +1,16 @@
 import { stripeKey, stripeWebhookSecret } from '../env';
+import { SignUp, StripePlans } from '@eximchain/dappbot-types/spec/methods/payment'; 
 import { UserError } from '../validate';
 import Stripe from 'stripe';
 import keyBy from 'lodash.keyby';
 export const stripe = new Stripe(stripeKey);
 
-// Extracting types we need here & elsewhere into
-// more convenient names.
-export type Customer = Stripe.customers.ICustomer;
-export type Subscription = Stripe.subscriptions.ISubscription;
-export type SubscriptionUpdateItem = Stripe.subscriptions.ISubscriptionUpdateItem;
-export type SubscriptionCreateItem = Stripe.subscriptions.ISubscriptionCreationItem;
-export type SubscriptionItem = Stripe.subscriptionItems.ISubscriptionItem;
-export type Invoice = Stripe.invoices.IInvoice;
-export type WebhookEvent = Stripe.events.IEvent;
-
-export type SubscriptionStateType = Stripe.subscriptions.SubscriptionStatus;
-export enum SubscriptionStates {
-  trial = 'trialing',
-  active = 'active',
-  canceled = 'canceled',
-  unpaid = 'unpaid',
-  incomplete = 'incomplete',
-  incompleteExpired = 'incomplete_expired',
-  pastDue = 'past_due'
-}
-export const ValidSubscriptionStates:SubscriptionStateType[] = [SubscriptionStates.trial, SubscriptionStates.active];
-
-export interface StripePlan {
-  [key:string] : number
-}
-
-
-export interface StripePlans {
-  standard : number
-  professional : number
-  enterprise : number
-}
-
-export type StripePlanNames = keyof StripePlans;
-
-export interface CreateStripeArgs {
-  name: string
-  email: string
-  token: string
-  plans: StripePlans
-  coupon?: string
-}
-
 ///////////////////////////////////////////////////
 ////                 KEY METHODS
 ///////////////////////////////////////////////////
 
-async function createCustomerAndSubscription({ name, email, token, plans, coupon }:CreateStripeArgs) {
+type SubscriptionCreateItem = Stripe.subscriptions.ISubscriptionCreationItem;
+async function createCustomerAndSubscription({ name, email, token, plans, coupon }:SignUp.Args) {
   const newCustomer = await stripe.customers.create({ 
     name, email, 
     description: `Customer for ${email}`,
@@ -59,7 +18,7 @@ async function createCustomerAndSubscription({ name, email, token, plans, coupon
   });
   const subItems:SubscriptionCreateItem[] = [];
   Object.keys(plans).forEach(plan => {
-    let quantity = plans[plan as StripePlanNames];
+    let quantity = plans[plan as keyof StripePlans];
     if (quantity > 0) {
       subItems.push({ plan, quantity })
     }
@@ -86,6 +45,9 @@ async function getStripeData(email:string) {
     } else {
       invoice = await getUpcomingInvoice(customer.id);
     }
+  } else {
+    subscription = null;
+    invoice = null;
   }
   return { customer, subscription, invoice };
 }
@@ -160,6 +122,7 @@ async function cancelStripeSubscription(email:string) {
   return await stripe.subscriptions.del(subscription.id)
 }
 
+type SubscriptionUpdateItem = Stripe.subscriptions.ISubscriptionUpdateItem;
 async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   const { customer, subscription} = await getStripeData(email);
   if (!customer){
@@ -175,7 +138,7 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   const items:SubscriptionUpdateItem[] = [];
   const currentByPlan = keyBy(currentItems, item => item.plan.id)
   Object.keys(newPlans).forEach((planId) => {
-    let newQuantity = newPlans[planId as StripePlanNames];
+    let newQuantity = newPlans[planId as keyof StripePlans];
     let currentItem = currentByPlan[planId];
     if (newQuantity === 0) {
       if (currentItem) items.push({

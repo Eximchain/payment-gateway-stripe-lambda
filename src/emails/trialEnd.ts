@@ -49,7 +49,7 @@ export function trialEndEmail(managerDNS: string) {
     }
   </style> <span class="preheader"
     style="box-sizing: border-box; display: none !important; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 1px; line-height: 1px; max-height: 0; max-width: 0; mso-hide: all; opacity: 0; overflow: hidden; visibility: hidden;">Eximchain
-    - Token Verification</span>
+    - Your Dappbot Trial</span>
   <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0"
     style="box-sizing: border-box; font-family: 'Helvetica Neue', Helvetica, sans-serif; margin: 0; padding: 0; width: 100%;"
     bgcolor="#f7f8f9">
@@ -114,7 +114,7 @@ export function trialEndEmail(managerDNS: string) {
                           style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
                         short survey</a>
                       (less than 5 mins). 
-                      Upon completing the survey, we will extend your trial access for an additional 14 days. Your feedback is valuable to us.  
+                      Upon completing the survey, we will extend your trial access for an additional 7 days. Your feedback is valuable to us.  
                     </p>
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
                       align="left">

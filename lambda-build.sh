@@ -1,4 +1,6 @@
-ZIP_NAME=payment-gateway-stripe-lambda.zip
+#!/bin/bash
+
+ZIP_NAME=$1
 rm -rf build/* "$ZIP_NAME"
 npm i
 npm run clean
