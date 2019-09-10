@@ -114,7 +114,7 @@ export function trialEndEmail(managerDNS: string) {
                           style="box-sizing: border-box; color: #3869D4; font-family: 'Helvetica Neue', Helvetica, sans-serif;">
                         short survey</a>
                       (less than 5 mins). 
-                      Upon completing the survey, we will extend your trial access for an additional 14 days. Your feedback is valuable to us.  
+                      Upon completing the survey, we will extend your trial access for an additional 7 days. Your feedback is valuable to us.  
                     </p>
                     <p style="box-sizing: border-box; color: #626b76; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; line-height: 1.5em; margin-top: 0;"
                       align="left">
