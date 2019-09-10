@@ -18,7 +18,7 @@ function handleErrResponse<Err extends Error>(err:Err) {
 exports.managementHandler = async (request: APIGatewayEvent) => {
     let method = request.httpMethod.toUpperCase() as HttpMethods.ANY;
     let callerEmail = request.requestContext.authorizer.claims.email;
-    let body = JSON.parse(request.body as string);
+    let body = request.body ? JSON.parse(request.body as string) : {};
     try {
         switch (method) {
             case 'GET':
