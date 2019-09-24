@@ -10,7 +10,11 @@ export const stripe = new Stripe(stripeKey);
 ///////////////////////////////////////////////////
 
 type SubscriptionCreateItem = Stripe.subscriptions.ISubscriptionCreationItem;
-async function createCustomerAndSubscription({ name, email, token, plans, coupon }:SignUp.Args) {
+async function createCustomerAndSubscription({ name, email, token, plans, coupon, metadata }:SignUp.Args) {
+  // TODO: Store this info in a better way than logging it
+  if (metadata) {
+    console.log(`Processing new user ${email} (${name}) with metadata: `, metadata);
+  }
   const newCustomer = await stripe.customers.create({ 
     name, email, 
     description: `Customer for ${email}`,
