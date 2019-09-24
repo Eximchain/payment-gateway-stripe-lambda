@@ -11,11 +11,16 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     if (!SignUp.isArgs(args)) {
         throw new UserError(`Body was missing some required arguments for signup.`);
     }
-    const { email, plans, name, coupon, token } = args;
+    const { email, plans, name, coupon, token, metadata } = args;
 
-    console.log(`Creating customer, subscription, & Cognito acct for ${email}`)
     if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
         throw new UserError(`Email ${email} is not permitted to create a staging account`);
+    }
+    // TODO: Store this info in a better way than logging it
+    if (metadata) {
+        console.log(`Processing new user ${email} (${name}) with metadata: `, metadata);
+    } else {
+        console.log(`Processing new user ${email} (${name}) without metadata`);
     }
     // If they haven't provided a payment method, replace
     // plans with a one-standard-dapp subscription.
