@@ -3,6 +3,7 @@ const { cognito, stripe, sns } = services;
 import { eximchainAccountsOnly } from './env';
 import { UserError } from './validate'
 import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel } from '@eximchain/dappbot-types/spec/methods/payment';
+import * as EmailValidator from 'email-validator';
 
 const eximchainEmailSuffix = '@eximchain.com';
 
@@ -13,6 +14,9 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     }
     const { email, plans, name, coupon, token, metadata } = args;
 
+    if (!EmailValidator.validate(email)) {
+        throw new UserError(`Email address '${email}' is not a valid email address`);
+    }
     if (eximchainAccountsOnly && !email.endsWith(eximchainEmailSuffix)) {
         throw new UserError(`Email ${email} is not permitted to create a staging account`);
     }
