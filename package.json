@@ -23,6 +23,7 @@
     "@types/stripe": "6.31.25",
     "amazon-cognito-identity-js": "^3.0.12",
     "aws-sdk": "^2.479.0",
+    "email-validator": "^2.0.4",
     "lodash.keyby": "^4.6.0",
     "node-fetch": "^2.6.0",
     "node-zip": "^1.1.1",
