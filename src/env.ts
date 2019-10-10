@@ -11,6 +11,7 @@ export const snsTopicARN = process.env.SNS_TOPIC_ARN as string;
 export const sendgridKey = process.env.SENDGRID_API_KEY as string;
 export const managerDNS = process.env.MANAGER_SPA_DNS as string;
 export const eximchainAccountsOnly = process.env.EXIMCHAIN_ACCOUNTS_ONLY === 'true' ? true : false;
+export const segmentWriteKey = process.env.SEGMENT_WRITE_KEY as string;
 
 UnconfiguredAWS.config.update({region: awsRegion});
 export const AWS = UnconfiguredAWS;
