@@ -1,5 +1,5 @@
 import services from './services';
-const { cognito, stripe, sns } = services;
+const { cognito, stripe, sns, analytics } = services;
 import { eximchainAccountsOnly } from './env';
 import { UserError } from './validate'
 import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel, StripePlans } from '@eximchain/dappbot-types/spec/methods/payment';
@@ -106,9 +106,20 @@ async function apiUpdateDapps(email: string, { plans }:UpdatePlanCount.Args):Pro
     console.log(`Updating dapp counts for ${email}`)
     // Stripe call will throw an error if they are in trial mode,
     // important that it happens before the Cognito one.
+    const oldUser = await cognito.getUser(email);
     const updatedSub = await stripe.updateSubscription(email, plans);
     const updateDappResult = await cognito.updateDapps(email, plans);
     const newUser = await cognito.getUser(email);
+    if (oldUser && newUser) {
+        const oldLimit = oldUser.UserAttributes["custom:standard_limit"];
+        const newLimit = newUser.UserAttributes["custom:standard_limit"];
+        if (newLimit > oldLimit) {
+            
+        }
+        if (newLimit < oldLimit) {
+
+        }
+    }
     return {
         updatedSubscription: updatedSub,
         updatedUser: newUser
