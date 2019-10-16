@@ -32,7 +32,7 @@ async function promiseAdminGetUser(cognitoUsername: string) {
 }
 
 function numPlanAttribute(plans: StripePlans, typeOfPlan: keyof StripePlans) {
-    let planName = `custom:${typeOfPlan}_limit`
+    let planName = `custom:${typeOfPlan === "standard-tiered" ? "standard" : typeOfPlan}_limit`
     return {
         Name: planName,
         Value: (plans[typeOfPlan] || 0).toString()
@@ -42,7 +42,7 @@ function numPlanAttribute(plans: StripePlans, typeOfPlan: keyof StripePlans) {
 export async function promiseUpdateDapps(email: string, plans: StripePlans) {
     let params = {
         "UserAttributes": [
-            numPlanAttribute(plans, "standard"),
+            numPlanAttribute(plans, "standard-tiered"),
             numPlanAttribute(plans, "enterprise"),
             numPlanAttribute(plans, "professional")
         ],
