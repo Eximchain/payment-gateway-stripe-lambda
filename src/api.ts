@@ -37,12 +37,14 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     } else {
         createArgs.plans = Payment.trialStripePlan();
     }
+    console.log(`Signing up user: ${createArgs}`);
     
     // Check for the presence of an existing Stripe customer,
     // recover its details 
     const existingCustomer = await stripe.read(email);
     let customer, subscription;
     if (existingCustomer.customer) {
+        console.log("Existing Customer Found");
         customer = existingCustomer.customer;
         subscription = existingCustomer.subscription;
         if (subscription) {
@@ -55,6 +57,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
             }, createArgs.plans)
         }
     } else {
+        console.log("No Existing Customer Found");
         // If there isn't any customer, use our details to create one
         const createRes = await stripe.create(createArgs);
         customer = createRes.customer;
