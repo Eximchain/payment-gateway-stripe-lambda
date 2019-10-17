@@ -1,5 +1,5 @@
 import services from './services';
-const { cognito, stripe, sns, analytics } = services;
+const { cognito, stripe, sns } = services;
 import { eximchainAccountsOnly } from './env';
 import { UserError } from './validate'
 import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel, StripePlans } from '@eximchain/dappbot-types/spec/methods/payment';
@@ -62,15 +62,6 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     }
 
     let newUser = await cognito.createUser(email, createArgs.plans)
-
-    // Only properly identify the user once we know the account has
-    // been successfully created.
-    const userTraits:Record<string,any> = { name, email }
-    if (metadata) {
-        Object.assign(userTraits, metadata);
-    }
-    
-    await analytics.identifyUserWithMetadata(email, userTraits); 
 
     return {
         user: newUser,
