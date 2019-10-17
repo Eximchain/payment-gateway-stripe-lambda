@@ -37,7 +37,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     } else {
         createArgs.plans = Payment.trialStripePlan();
     }
-    console.log(`Signing up user: ${createArgs}`);
+    console.log(`Signing up user:`, createArgs);
     
     // Check for the presence of an existing Stripe customer,
     // recover its details 
