@@ -104,6 +104,7 @@ async function apiUpdate(email: string, args: any):Promise<UpdateCard.Result | U
 
 async function apiUpdateDapps(email: string, { plans }:UpdatePlanCount.Args):Promise<UpdatePlanCount.Result> {
     console.log(`Updating dapp counts for ${email}`)
+    console.log(`Plans: ${plans}`);
     // Stripe call will throw an error if they are in trial mode,
     // important that it happens before the Cognito one.
     const updatedSub = await stripe.updateSubscription(email, plans);

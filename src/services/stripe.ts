@@ -150,7 +150,9 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
         plan : planId,
         quantity : newQuantity
       }
+      console.log(`Subscribing ${email} to plan ${newItem}`);
       if (currentItem) newItem.id = currentItem.id;
+      console.log(newItem);
       items.push(newItem)
     }
   })
