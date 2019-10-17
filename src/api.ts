@@ -69,7 +69,8 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     if (metadata) {
         Object.assign(userTraits, metadata);
     }
-    analytics.identifyUserWithMetadata(email, userTraits); 
+    
+    await analytics.identifyUserWithMetadata(email, userTraits); 
 
     return {
         user: newUser,

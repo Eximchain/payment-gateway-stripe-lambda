@@ -15,8 +15,16 @@ export function identifyUserWithMetadata(email:string, traits:Record<string, any
     .identify({
       userId, traits
   })
-  analytics.flush();
-  console.log('Tracking allegedly complete');
+  return new Promise((resolve, reject) => {
+    analytics.flush((err) => {
+      if (err) {
+        console.error('Error sending data to Segment: ')
+      } else {
+        console.log('Tracking allegedly complete & sent off to Segment');
+        resolve()
+      }
+    });
+  })
 }
 
 export default { identifyUserWithMetadata }
