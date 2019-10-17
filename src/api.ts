@@ -21,14 +21,6 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
         throw new UserError(`Email ${email} is not permitted to create a staging account`);
     }
 
-    // Prepare the userTraits object while we're working with metadata
-    const userTraits:Record<string,any> = { name, email }
-    if (metadata) {
-        Object.assign(userTraits, metadata);
-        console.log(`Processing new user ${email} (${name}) with metadata: `, metadata);
-    } else {
-        console.log(`Processing new user ${email} (${name}) without metadata`);
-    }
     // If they haven't provided a payment method, replace
     // plans with a one-standard-dapp subscription.
     const createArgs:SignUp.Args = {
@@ -73,6 +65,10 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
 
     // Only properly identify the user once we know the account has
     // been successfully created.
+    const userTraits:Record<string,any> = { name, email }
+    if (metadata) {
+        Object.assign(userTraits, metadata);
+    }
     analytics.identifyUserWithMetadata(email, userTraits); 
 
     return {
