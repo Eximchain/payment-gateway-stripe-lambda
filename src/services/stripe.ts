@@ -131,9 +131,9 @@ async function updateStripeSubscription(email:string, newPlans:StripePlans) {
   if (!subscription){
     throw new Error(`Unable to update subscription for ${email}, no subscription exist.`);
   }
-  if (subscription.status === 'trialing' && customer.default_source === null){
-    throw new UserError("You cannot modify your dapp count without a saved payment method.");
-  }
+//  if (subscription.status === 'trialing' && customer.default_source === null){
+//    throw new UserError("You cannot modify your dapp count without a saved payment method.");
+//  }
   const currentItems = subscription.items.data.slice();
   const items:SubscriptionUpdateItem[] = [];
   const currentByPlan = keyBy(currentItems, item => item.plan.id)
