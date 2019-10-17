@@ -6,7 +6,6 @@ import { UserError } from './validate';
 import { APIGatewayEvent } from './gateway-event-type';
 import Stripe, { WebhookEventTypes } from './services/stripe';
 import webhooks from './webhooks';
-import analytics from './services/analytics';
 
 function handleErrResponse<Err extends Error>(err:Err) {
     console.log('Error: ',err);
@@ -26,11 +25,9 @@ exports.managementHandler = async (request: APIGatewayEvent) => {
                 let readResult:Read.Result = await api.read(callerEmail);
                 return successResponse(readResult);
             case 'PUT':
-                analytics.identify({ userId: callerEmail });
                 let updateResult:UpdateCard.Result | UpdatePlanCount.Result = await api.update(callerEmail, body);
                 return successResponse(updateResult);
             case 'DELETE':
-                analytics.identify({ userId: callerEmail });
                 let cancelResult:Cancel.Result = await api.cancel(callerEmail);
                 return successResponse(cancelResult);
             case 'OPTIONS':

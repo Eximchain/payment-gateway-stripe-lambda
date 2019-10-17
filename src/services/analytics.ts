@@ -1,6 +1,14 @@
 import { segmentWriteKey } from '../env';
 import Analytics from 'analytics-node';
 
-export const analytics = new Analytics(segmentWriteKey, { flushAt: 1 });
+const analytics = new Analytics(segmentWriteKey, { flushAt: 1 });
 
-export default analytics;
+export function identifyUserWithMetadata(email:string, traits:Record<string, any>) {
+  analytics.identify({
+    userId: email,
+    traits
+  })
+}
+
+export default { identifyUserWithMetadata }
+
