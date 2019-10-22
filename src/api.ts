@@ -62,7 +62,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     }
 
     if (subscription === null || !Payment.StripeTypes.ValidSubscriptionStates.includes(subscription.status)) {
-        let msg = subscription ? `subscription status is ${subscription.status}` : `user already has an account, but it has no subscription.`
+        let msg = subscription ? `user's existing Stripe subscription status is ${subscription.status}.` : `user already has a Stripe customer, but it has no subscription.`
         throw new Error(`Subscription failed because ${msg}`);
     }
 
