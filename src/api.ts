@@ -35,7 +35,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     if (validToken && typeof token === 'string') {
         createArgs.token = token;
     } else {
-        createArgs.plans = Payment.trialStripePlan();
+        createArgs.plans = Payment.freeTierStripePlan();
     }
     
     // Check for the presence of an existing Stripe customer,
@@ -46,7 +46,7 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
         customer = existingCustomer.customer;
         subscription = existingCustomer.subscription;
         if (subscription) {
-            const planNames = Object.keys(Payment.trialStripePlan());
+            const planNames = Object.keys(Payment.freeTierStripePlan());
             createArgs.plans = subscription.items.data.reduce((planObj, item) => {
                 if (planNames.includes(item.plan.id)) {
                     planObj[item.plan.id as keyof StripePlans] = item.quantity as number;
