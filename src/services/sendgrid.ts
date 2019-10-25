@@ -1,5 +1,5 @@
 import sgMail from '@sendgrid/mail';
-import { trialEndEmail } from '../emails'
+import { surveyEmail } from '../emails'
 import { sendgridKey, managerDNS } from '../env';
 
 let USING_SENDGRID = false;
@@ -11,12 +11,12 @@ if (sendgridKey && sendgridKey !== ""){
 
 const FROM_ADDRESS = 'dappbot@eximchain.com';
 
-export async function sendTrialEndEmail(email:string) {
-  let emailHtml = trialEndEmail(managerDNS)
+export async function sendSurveyEmail(email:string) {
+  let emailHtml = surveyEmail(managerDNS)
   let confirmationParam = {
     from : FROM_ADDRESS,
     to : email,
-    subject : `Your DappBot Trial is Ending Soon, Unless...`,
+    subject : `Tell Us Your Thoughts About DappBot`,
     html : emailHtml
   }
   if (USING_SENDGRID){
@@ -28,5 +28,5 @@ export async function sendTrialEndEmail(email:string) {
 }
 
 export default {
-  sendTrialEndEmail
+  sendSurveyEmail
 }

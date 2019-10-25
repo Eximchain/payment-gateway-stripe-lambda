@@ -1,1 +1,1 @@
-export * from './trialEnd';
+export * from './survey';
