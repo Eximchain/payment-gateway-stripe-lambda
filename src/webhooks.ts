@@ -2,7 +2,7 @@ import AllStripeTypes from 'stripe';
 import { successResponse } from '@eximchain/dappbot-types/spec/responses';
 import { StripeTypes } from '@eximchain/dappbot-types/spec/methods/payment';
 import { getStripeCustomerById } from './services/stripe';
-import { sendTrialEndEmail } from './services/sendgrid';
+import { sendSurveyEmail } from './services/sendgrid';
 import { publishPaymentFailure, publishPaymentSuccess } from './services/sns';
 
 type WebhookEvent = AllStripeTypes.events.IEvent;
@@ -37,7 +37,7 @@ export async function handleTrialEnding(event:WebhookEvent) {
   const { email } = customer;
   let msg = `DappBot notified of ${email}'s trial ending.`
   console.log(msg);
-  const emailReceipt = await sendTrialEndEmail(email as string);
+  const emailReceipt = await sendSurveyEmail(email as string);
   console.log('Email receipt from Sendgrid: ',emailReceipt);
   return successResponse({ message :  msg })
 }
