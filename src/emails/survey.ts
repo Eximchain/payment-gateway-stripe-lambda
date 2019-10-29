@@ -64,7 +64,7 @@ export function surveyEmail(managerDNS: string) {
           <tr style="background: #fff;">
             <td align="center"> <a href="#" target="_blank" style="text-decoration:none;"><img
                   src="https://dapp.bot/Edu.svg" width="230" height="auto" style="display:block; margin-bottom: 25px;"
-                  border="0" alt="Eximchain" /></a>
+                  border="0" alt="Eximchain" title="Eximchain" /></a>
               <h2
                 style="font-size: 1.34em; font-weight: bold; margin-top: -10px; margin-bottom: 0.5em; color: #515762;">
                 DappBot User Survey</h2>
