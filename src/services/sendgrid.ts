@@ -16,7 +16,7 @@ export async function sendSurveyEmail(email:string) {
   let confirmationParam = {
     from : FROM_ADDRESS,
     to : email,
-    subject : `Tell Us Your Thoughts About DappBot`,
+    subject : `How Was Your Experience With DappBot?`,
     html : emailHtml
   }
   if (USING_SENDGRID){
