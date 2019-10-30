@@ -2,7 +2,7 @@ import services from './services';
 const { cognito, stripe, sns } = services;
 import { eximchainAccountsOnly } from './env';
 import { UserError } from './validate'
-import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel } from '@eximchain/dappbot-types/spec/methods/payment';
+import Payment, { SignUp, Read, UpdateCard, UpdatePlanCount, Cancel, StripePlans } from '@eximchain/dappbot-types/spec/methods/payment';
 import * as EmailValidator from 'email-validator';
 
 const eximchainEmailSuffix = '@eximchain.com';
@@ -35,13 +35,35 @@ async function apiCreate(body: string):Promise<SignUp.Result> {
     if (validToken && typeof token === 'string') {
         createArgs.token = token;
     } else {
-        createArgs.plans = Payment.trialStripePlan();
+        createArgs.plans = Payment.freeTierStripePlan();
     }
     
-    const { customer, subscription } = await stripe.create(createArgs)
+    // Check for the presence of an existing Stripe customer,
+    // recover its details 
+    const existingCustomer = await stripe.read(email);
+    let customer, subscription;
+    if (existingCustomer.customer) {
+        customer = existingCustomer.customer;
+        subscription = existingCustomer.subscription;
+        if (subscription) {
+            const planNames = Object.keys(Payment.freeTierStripePlan());
+            createArgs.plans = subscription.items.data.reduce((planObj, item) => {
+                if (planNames.includes(item.plan.id)) {
+                    planObj[item.plan.id as keyof StripePlans] = item.quantity as number;
+                }
+                return planObj;
+            }, createArgs.plans)
+        }
+    } else {
+        // If there isn't any customer, use our details to create one
+        const createRes = await stripe.create(createArgs);
+        customer = createRes.customer;
+        subscription = createRes.subscription
+    }
 
-    if (!Payment.StripeTypes.ValidSubscriptionStates.includes(subscription.status)) {
-        throw new Error(`Subscription failed because subscription status is ${subscription.status}`)
+    if (subscription === null || !Payment.StripeTypes.ValidSubscriptionStates.includes(subscription.status)) {
+        let msg = subscription ? `user's existing Stripe subscription status is ${subscription.status}.` : `user already has a Stripe customer, but it has no subscription.`
+        throw new Error(`Subscription failed because ${msg}`);
     }
 
     let newUser = await cognito.createUser(email, createArgs.plans)
